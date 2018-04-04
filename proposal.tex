@@ -29,9 +29,9 @@ Sketching algorithms are a class of randomized approximation algorithms designed
 Some of the sketching algorithms we may implement are
 \begin{itemize}
 	\item Gaussian sketch
-	\item Subsampled randomized Hadamard transform
-	\item Count sketch
-	\item Leverage score sampling sketch
+	\item subsampled randomized Hadamard transform
+	\item count sketch
+	\item leverage score sampling sketch
 \end{itemize}
 and some of the applications we may implement are
 \begin{itemize}
@@ -40,6 +40,7 @@ and some of the applications we may implement are
 	\item $k$ means clustering
 	\item principal component analysis
 \end{itemize}
+Note that the above is just a short list of some representative sketching algorithms and applications, and we could list out dozens more for each.
 
 \section{The Challenge}
 We expect the main challenge of the project to be the initial implementation of correct sequential versions of our algorithms, and the subsequent optimization on GPUs. Although the algorithms themselves are not incredibly complex, deciding on a framework to work in and setting everything up may be difficult in the first phase of the project. We expect to make use of existing code, as described in section 3, as well as libraries for linear algebraic operations. However, we still expect this to be one of the more challenging parts of the project. After the set up, the main objective and challenge of the project will be speeding up the code on GPUs. As described before, some parallelization strategies are known already. However, parallel programming on GPUs is an art that can be wildly different from parallelization strategies for distributed computation, and we expect this to take the majority of our time on this project.
@@ -50,11 +51,39 @@ Sketching algorithms for streaming problems have been implemented successfully, 
 The two projects mentioned above give us an excellent platform from which we can kick off our project. Although Data Sketches does not allow us to check correctness since it is a randomized algorithm whose seed we cannot set, it gives us an excellent reference implementation for a sequential version of some of the algorithms we are interested in with respect to the speedup we may achieve. In addition, the website for Data Sketches also includes a discussion for the parallelization tricks used to support distributed computation, so we can base our strategies off of their reports. The unsuccessful GPU code included a C++ implementation of some of the sketching algorithms we are interested in, which helps speed up the process of developing sequential versions of our code. 
 
 \section{Goals and Deliverables}
+\subsection{Core Achievements}
+As a baseline goal for the project, we plan to implement at least two sketching algorithms (e.g.\ count sketch and subsampled randomized Hadamard transform) and at least three applications of the sketching algorithms (e.g.\ linear regression, $k$ rank approximation, and principal component analysis). This includes a full testing framework, fast sequential implementations, and optimized blazing fast GPU implementations. These algorithms were designed to speedup computations on extremely large data sets, so we might hope to achieve around $100\times$ speed up for sufficiently sized inputs. 
+
+\subsection{Extra Achievements}
+There are a few different directions in which we could extend our project. One direction is just to implement and optimize more sketching algorithms and applications. Another could be to do some analysis on the various sketching algorithms that we implement, comparing how the algorithms scale and which algorithms are best at which scales. Yet another direction could be to put in more software engineering effort and expose our CPU and GPU code to other frameworks, for example by providing a Python library (like NumPy and TensorFlow). 
+
+\subsection{Poster Presentation}
+For the final poster presentation, we will likely be presenting demos of our code on images, as this makes for the most visually appealing application of the algorithms that we implement, as well as charts and graphs that show our speedups relative to our sequential implementations as well as existing sequential implementations. We could also compare our algorithms to exact algorithms for the tasks that we solve. 
 
 \section{Platform Choice}
 We will be developing and testing on GPUs on the GHC machines.
 
 \section{Schedule}
+Below is our proposed schedule. The ($*$) indicates a course deadline.
+\begin{center}
+	\begin{tabular}{l l}
+		($*$)Proposal Checkpoint & April 4 \\
+		Finish researching existing code & April 6 \\
+		Decide on algorithms to implement & April 8 \\
+		($*$)Proposal Due & April 9 \\
+		Sequential code of all algorithms & April 12 \\
+		Testing framework for all algorithms & April 15 \\
+		Correct GPU code of all algorithms & April 18 \\
+		($*$)Project Checkpoint I & April 18 \\
+		Optimized GPU code of all algorithms & April 27 \\
+		($*$)Project Checkpoint II & April 27 \\
+		Decide on extra achievements & April 28 \\
+		Extra achievements & May 4 \\
+		Project Report and Poster & May 7 \\
+		($*$)Report Due & May 7 \\
+		($*$)Poster Session & May 8
+	\end{tabular}
+\end{center}
 
 \bibliographystyle{alpha}
 \bibliography{citations}
