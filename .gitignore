@@ -3,7 +3,7 @@
 ################################################################################
 
 # Data sets too large to store in git
-./test/uci_msd/YearPredictionMSD*
+./test/uci_msd/YearPredictionMSD.txt*
 ./test/uci_cover/covtype.data*
 
 ################################################################################

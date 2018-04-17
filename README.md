@@ -12,6 +12,5 @@
 │   ├── images            # grayscale images
 │   ├── uf_sparse         # UF sparse matrix collection
 │   ├── uci_msd           # UCI YearPredictionMSD
-│   ├── uci_adult         # UCI Adult
 │   ├── uci_cover         # UCI Covertype
 ```
