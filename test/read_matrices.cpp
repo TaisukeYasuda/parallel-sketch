@@ -16,7 +16,7 @@ std::vector< std::vector<double> > *read_matrix(std::string filename) {
     std::ifstream infile(filename.c_str());
     std::string line;
     
-    while(std::getline(infile, line)) {
+    while(std::getline(infile, line, ',')) {
         std::istringstream iss(line);
         
         std::vector<double> curr;
