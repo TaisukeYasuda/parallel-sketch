@@ -14,7 +14,7 @@ class Sketch {
 template <typename I, typename T>
 class ObliviousSketch: public Sketch<I, T> {
     public:
-        ObliviousSketch(size_t num_rows);
+        ObliviousSketch(size_t num_rows, size_t num_cols);
 };
 
 template <typename I, typename T>
