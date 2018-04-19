@@ -1,5 +1,5 @@
 #include <boost/numeric/ublas/matrix.hpp>
-#include "count_sketch.hpp"
+#include "sketch.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -9,7 +9,7 @@
 
 namespace bnu = boost::numeric::ublas;
 
-void print_matrix(bnu::matrix<float> A) {
+void print_matrix(bnu::matrix<float>& A) {
     for (unsigned i = 0; i < A.size1(); i++) {
         for (unsigned j = 0; j < A.size2(); j++)
             std::cout << A(i, j) << " ";
@@ -20,9 +20,8 @@ void print_matrix(bnu::matrix<float> A) {
 int main() {
     std::cout << "Running a stupid test" << std::endl;
     size_t p = 3, n = 20, d = 5;
-    count_sketch S(p, n);
+    par_sketch::count_sketch<bnu::matrix<float>, bnu::matrix<float> > S(p, n);
     bnu::matrix<float> A(n, d);
-    bnu::matrix<float> SA(p, d);
 
     std::string line;
     std::ifstream infile("random_matrices/small_test0.txt");
@@ -41,7 +40,7 @@ int main() {
     print_matrix(A);
     std::cout << std::endl;
 
-    S.sketch(&A, &SA);
+    bnu::matrix<float> SA = S.sketch(A);
     std::cout << "Printing SA" << std::endl;
     print_matrix(SA);
     std::cout << std::endl;

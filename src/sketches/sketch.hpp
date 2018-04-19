@@ -1,4 +1,3 @@
-
 #ifndef _SKETCH_H_INCLUDED
 #define _SKETCH_H_INCLUDED
 
@@ -7,46 +6,46 @@
 
 namespace bnu = boost::numeric::ublas;
 
-namespace sketch {
+namespace par_sketch {
 //TODO case based on underlying matrix type
 //sketch will be stored internally (so each object is the sketch itself)
 //this allows for use of operator overloading
 template <typename I, typename T>
-class Sketch {
+class sketch_interface {
     public:
-        virtual T* sketch(I* A) = 0;
+        virtual T& sketch(I& A) = 0;
 };
 
 template <typename I, typename T>
-class ObliviousSketch : public Sketch<I, T> {
+class oblivious_sketch : public sketch_interface<I, T> {
     public:
-        ObliviousSketch(std::size_t num_rows, std::size_t num_cols);
+        oblivious_sketch(std::size_t num_rows, std::size_t num_cols);
 };
 
 template <typename I, typename T>
-class AdaptiveSketch : public Sketch<I, T> {
+class adaptive_sketch : public sketch_interface<I, T> {
     public:
-        AdaptiveSketch();
+        adaptive_sketch();
 };
 
 template <typename I, typename T>
-class GaussianProjection : public ObliviousSketch<I, T> {};
+class gaussian_projection : public oblivious_sketch<I, T> {};
 
 template <typename I, typename T>
-class CountSketch : public ObliviousSketch<I, T>  {
+class count_sketch : public oblivious_sketch<I, T>  {
     public:
-        CountSketch(size_t p, size_t n);
-        T* sketch(I *A);
+        count_sketch(size_t p, size_t n);
+        T& sketch(I &A);
     private:
         unsigned int seed;
         bnu::matrix<float> *S;
 };
 
 template <typename I, typename T>
-class UniformSamplingSketch : public ObliviousSketch<I, T> {};
+class uniform_sampling_sketch : public oblivious_sketch<I, T> {};
 
 template <typename I, typename T>
-class LeverageScoreSketch : public AdaptiveSketch<I, T> {};
+class leverage_score_sketch : public adaptive_sketch<I, T> {};
 
 }
 

@@ -1,10 +1,13 @@
 #include <boost/numeric/ublas/matrix_sparse.hpp>
-#include "count_sketch.hpp"
+#include "sketch.hpp"
 #include <random>
 
 namespace bnu = boost::numeric::ublas;
 
-count_sketch::count_sketch(size_t p, size_t n) {
+namespace par_sketch{
+
+template <typename I, typename T>
+count_sketch<I, T>::count_sketch(size_t p, size_t n) {
     S = bnu::compressed_matrix<float>(p, n);
     std::random_device rd;
     seed = rd();
@@ -15,6 +18,9 @@ count_sketch::count_sketch(size_t p, size_t n) {
         S(rand_row(mt), i) = rand_sign(mt) * 2 - 1;
 }
 
-void count_sketch::sketch(bnu::matrix<float> *A, bnu::matrix<float> *SA) {
-    *SA = prod(S, *A);
+template <typename I, typename T>
+T count_sketch<I, T>::sketch(I &A) {
+    return prod(S, *A);
+}
+
 }
