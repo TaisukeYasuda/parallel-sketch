@@ -4,7 +4,7 @@
 
 namespace bnu = boost::numeric::ublas;
 
-namespace par_sketch{
+namespace sketch{
 
 template <typename I, typename T>
 count_sketch<I, T>::count_sketch(size_t p, size_t n) {
@@ -19,7 +19,7 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n) {
 }
 
 template <typename I, typename T>
-const T& count_sketch<I, T>::sketch(const I &A) {
+T& count_sketch<I, T>::sketch(I &A) {
     return A = prod(S, *A);
 }
 

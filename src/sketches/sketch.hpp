@@ -6,14 +6,14 @@
 
 namespace bnu = boost::numeric::ublas;
 
-namespace par_sketch {
+namespace sketch {
 //TODO case based on underlying matrix type
 //sketch will be stored internally (so each object is the sketch itself)
 //this allows for use of operator overloading
 template <typename I, typename T>
 class sketch_interface {
     public:
-        virtual T& sketch(const I& A) = 0;
+        virtual T& sketch(I& A) = 0;
 };
 
 template <typename I, typename T>
@@ -35,7 +35,7 @@ template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
         count_sketch(size_t p, size_t n);
-        T& sketch(const I &A);
+        T& sketch(I &A);
     private:
         unsigned int seed;
         bnu::matrix<float> *S;
