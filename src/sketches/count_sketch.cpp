@@ -19,8 +19,8 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n) {
 }
 
 template <typename I, typename T>
-T count_sketch<I, T>::sketch(I &A) {
-    return prod(S, *A);
+const T& count_sketch<I, T>::sketch(const I &A) {
+    return A = prod(S, *A);
 }
 
 }

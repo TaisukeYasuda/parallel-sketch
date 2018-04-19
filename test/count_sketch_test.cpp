@@ -37,12 +37,15 @@ int main() {
     }
 
     std::cout << "Printing A" << std::endl;
-    print_matrix(A);
+    std::cout << A.size1() << ' ' << A.size2();
+    //print_matrix(A);
     std::cout << std::endl;
 
     bnu::matrix<float> SA = S.sketch(A);
     std::cout << "Printing SA" << std::endl;
-    print_matrix(SA);
+    //print_matrix(SA);
+    std::cout << A.size1() << ' ' << A.size2();
+
     std::cout << std::endl;
 
     return 0;

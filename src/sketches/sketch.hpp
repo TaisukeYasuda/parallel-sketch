@@ -13,7 +13,7 @@ namespace par_sketch {
 template <typename I, typename T>
 class sketch_interface {
     public:
-        virtual T& sketch(I& A) = 0;
+        virtual T& sketch(const I& A) = 0;
 };
 
 template <typename I, typename T>
@@ -35,7 +35,7 @@ template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
         count_sketch(size_t p, size_t n);
-        T& sketch(I &A);
+        T& sketch(const I &A);
     private:
         unsigned int seed;
         bnu::matrix<float> *S;
