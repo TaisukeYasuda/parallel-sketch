@@ -2,9 +2,9 @@
 
 namespace bnu = boost::numeric::ublas;
 
-class CountSketch {
+class count_sketch {
     public:
-        CountSketch(size_t p, size_t n);
+        count_sketch(size_t p, size_t n);
         void sketch(bnu::matrix<float> *A, bnu::matrix<float> *SA);
 
     private:

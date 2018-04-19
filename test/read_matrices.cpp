@@ -1,6 +1,5 @@
-/* Reads in and runs tests
- *
- *
+/*
+ * Reads in and runs tests
  */
 
 #include <vector>
@@ -12,13 +11,13 @@
 
 std::vector< std::vector<double> > *read_matrix(std::string filename) {
     std::vector< std::vector<double> > *matrix = new std::vector< std::vector<double> >(0);
-    
+
     std::ifstream infile(filename.c_str());
     std::string line;
-    
+
     while(std::getline(infile, line, ',')) {
         std::istringstream iss(line);
-        
+
         std::vector<double> curr;
         double temp;
         while(iss >> temp)
@@ -48,16 +47,16 @@ int main() {
     cases.push_back("small_test");
 
     std::string test_dir = "random_matrices/";
-    
+
     for(int i = 0; i < cases.size(); i++){
         for(int j = 0; j < num_tests; j++){
             std::stringstream ss;
             ss << test_dir << cases[i] << j << ".txt";
-            
+
             print_matrix(read_matrix(ss.str()), 5, 5);
         }
     }
-    
+
 
 
     return 0;
