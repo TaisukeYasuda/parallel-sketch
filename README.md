@@ -26,6 +26,7 @@ the project, run the following commands at the root directory of the project:
 ```bash
 parallel-sketch$ mkdir build
 parallel-sketch/build$ cmake ..
+parallel-sketch/build$ make
 parallel-sketch/build$ ./sketch_test
 ```
 Note that CMake copies the directory `test/data` into the `build` directory, so
