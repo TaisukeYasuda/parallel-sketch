@@ -1,3 +1,10 @@
+/*
+ * Count Sketch
+ *
+ * Naive sequential implementation of the count sketch algorithm. For each
+ * column, we select a uniformly random row and assign it a random sign.
+ */
+
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include "sketch.hpp"
 #include <random>
@@ -17,21 +24,12 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n) {
     for (unsigned int i = 0; i < n; i++)
         (*S)(rand_row(mt), i) = rand_sign(mt) * 2 - 1;
 }
-template<typename I, typename T>
-oblivious_sketch<I, T>::oblivious_sketch() {
-
-}
-template<typename I, typename T>
-oblivious_sketch<I, T>::oblivious_sketch(std::size_t num_rows, std::size_t num_cols) {
-
-}
 
 template <typename I, typename T>
 void count_sketch<I, T>::sketch(I *A, T *SA) {
     *SA = prod(*S, *A);
 }
 
-template class oblivious_sketch<bnu::matrix<float>, bnu::matrix<float> >;
 template class count_sketch<bnu::matrix<float>, bnu::matrix<float> >;
 
 }

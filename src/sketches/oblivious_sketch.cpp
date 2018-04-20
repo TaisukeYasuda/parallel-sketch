@@ -1,4 +1,7 @@
+#include <boost/numeric/ublas/matrix.hpp>
 #include "sketch.hpp"
+
+namespace bnu = boost::numeric::ublas;
 
 namespace sketch{
 
