@@ -17,5 +17,8 @@ set(SOURCES
     test/count_sketch_test.cpp
 )
 
+# copy test cases to binary directory
+file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 # compile test code
-add_executable(test ${SOURCES})
+add_executable(sketch_test ${SOURCES})

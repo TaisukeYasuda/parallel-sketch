@@ -2,6 +2,9 @@
 #                              Project .gitignore
 ################################################################################
 
+# CMake build
+build
+
 # Data sets too large to store in git
 YearPredictionMSD.txt*
 covtype.data*

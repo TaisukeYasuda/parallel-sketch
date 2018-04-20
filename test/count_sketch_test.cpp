@@ -25,7 +25,7 @@ int main() {
     bnu::matrix<float> SA;
 
     std::string line;
-    std::ifstream infile("../test/random_matrices/small_test0.txt");
+    std::ifstream infile("./data/random_matrices/small_test0.txt");
     for (unsigned int i = 0; i < n; i++) {
         for (unsigned int j = 0; j < d; j++) {
             if (j < d-1) std::getline(infile, line, ',');
