@@ -1,18 +1,23 @@
 # Parallel Sketching on GPUs
+This project provides sequential and parallel implementations of various matrix
+sketching algorithms and downstream approximation algorithms. Our sequential
+implementation is written in C++ primarily for Boost matrices, while our
+parallel implementation is written in CUDA for NVIDIA GPUs.
 
-## Organization
+## Directory Organization
 ```
 .
 ├── docs
-├── src                   # source implementation directory
-│   ├── sketches          # sketching algorithms
-│   ├── applications      # applications of sketching algorithms
-├── tests                 # testing directory
-│   ├── random_matrices   # randomly generated matrices
-│   ├── images            # grayscale images
-│   ├── uf_sparse         # UF sparse matrix collection
-│   ├── uci_msd           # UCI YearPredictionMSD
-│   ├── uci_cover         # UCI Covertype
+├── src                          # source implementation
+│   ├── applications             # downstream algorithms
+│   └── sketches                 # sketching algorithms
+└── test                         # tests
+    └── data                     # testing data
+        ├── images               # grayscale images
+        ├── random_matrices      # randomly generated matrices
+        ├── uci_cover            # UF sparse matrix collection
+        ├── uci_msd              # UCI YearPredictionMSD
+        └── uf_sparse            # UCI Covertype
 ```
 
 ## Building the test
