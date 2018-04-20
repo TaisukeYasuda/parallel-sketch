@@ -13,12 +13,13 @@ namespace sketch {
 template <typename I, typename T>
 class sketch_interface {
     public:
-        virtual T& sketch(I& A) = 0;
+        virtual void sketch(I *A, T *SA) = 0;
 };
 
 template <typename I, typename T>
 class oblivious_sketch : public sketch_interface<I, T> {
     public:
+        oblivious_sketch();
         oblivious_sketch(std::size_t num_rows, std::size_t num_cols);
 };
 
@@ -35,10 +36,10 @@ template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
         count_sketch(size_t p, size_t n);
-        T& sketch(I &A);
+        void sketch(I *A, T *SA);
     private:
         unsigned int seed;
-        bnu::matrix<float> *S;
+        bnu::compressed_matrix<float> *S;
 };
 
 template <typename I, typename T>
@@ -48,5 +49,7 @@ template <typename I, typename T>
 class leverage_score_sketch : public adaptive_sketch<I, T> {};
 
 }
+
+
 
 #endif
