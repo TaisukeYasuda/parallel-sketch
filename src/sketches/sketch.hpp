@@ -2,9 +2,8 @@
 #define _SKETCH_H_INCLUDED
 
 #include <cstddef>
-#include <boost/numeric/ublas/matrix.hpp>
-
-namespace bnu = boost::numeric::ublas;
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 namespace sketch {
 /* Sketch interface
@@ -62,7 +61,7 @@ class gaussian_projection : public oblivious_sketch<I, T> {
         void sketch(I *A, T *SA);
     private:
         unsigned int seed;
-        bnu::matrix<float> *S;
+        Eigen::MatrixXd *S;
 };
 
 template <typename I, typename T>
@@ -72,7 +71,7 @@ class count_sketch : public oblivious_sketch<I, T>  {
         void sketch(I *A, T *SA);
     private:
         unsigned int seed;
-        bnu::compressed_matrix<float> *S;
+        Eigen::SparseMatrix<double> *S;
 };
 
 template <typename I, typename T>
@@ -82,7 +81,7 @@ class uniform_sampling_sketch : public oblivious_sketch<I, T> {
         void sketch(I *A, T *SA);
     private:
         unsigned int seed;
-        bnu::compressed_matrix<float> *S;
+        Eigen::SparseMatrix<double> *S;
 };
 
 /*
@@ -95,7 +94,7 @@ class leverage_score_sketch : public adaptive_sketch<I, T> {
         void sketch(I *A, T *SA);
     private:
         unsigned int seed;
-        bnu::compressed_matrix<float> *S;
+        Eigen::SparseMatrix<double> *S;
 };
 
 }

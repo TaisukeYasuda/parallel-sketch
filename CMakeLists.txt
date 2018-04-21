@@ -5,6 +5,7 @@ project(parallel-sketch)
 add_compile_options(-std=c++11)
 
 # include headers
+include_directories(deps/eigen-3.3.4/include/eigen3)
 include_directories(src/sketches)
 # set source files
 set(SOURCES

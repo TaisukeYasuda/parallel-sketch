@@ -1,7 +1,5 @@
-#include <boost/numeric/ublas/matrix.hpp>
+#include <Eigen/Dense>
 #include "sketch.hpp"
-
-namespace bnu = boost::numeric::ublas;
 
 namespace sketch{
 
@@ -10,9 +8,9 @@ adaptive_sketch<I, T>::adaptive_sketch() {
 }
 
 template<typename I, typename T>
-adaptive_sketch<I, T>::adaptive_sketch(std::size_t num_rows, std::size_t num_cols) {
+adaptive_sketch<I, T>::adaptive_sketch(size_t p, size_t d) {
 }
 
-template class adaptive_sketch<bnu::matrix<float>, bnu::matrix<float> >;
+template class adaptive_sketch<Eigen::MatrixXd, Eigen::MatrixXd >;
 
 }
