@@ -87,6 +87,7 @@ class count_sketch : public oblivious_sketch<I, T>  {
     public:
         count_sketch(size_t p, size_t n);
         void sketch(I *A, T *SA);
+        static size_t eps_approx_rows(double eps, size_t n, size_t d);
     private:
         unsigned int seed;
         Eigen::SparseMatrix<double> *S;
