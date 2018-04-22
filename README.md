@@ -8,6 +8,7 @@ parallel implementation is written in CUDA for NVIDIA GPUs.
 ```
 .
 ├── docs
+├── include                      # header files
 ├── src                          # source implementation
 │   ├── applications             # downstream algorithms
 │   └── sketches                 # sketching algorithms
