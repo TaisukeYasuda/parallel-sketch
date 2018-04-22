@@ -27,17 +27,6 @@ std::vector< std::vector<double> > *read_matrix(std::string filename) {
     return matrix;
 }
 
-void print_matrix(std::vector< std::vector<double> > *m, int n, int k) {
-    n = std::min(n, (int) m->size());
-    k = std::min(k, (int) m->at(0).size());
-    for(int i = 0; i < m->size(); i++) {
-        for(int j = 0; j < m->at(i).size(); j++) {
-            std::cout << m->at(i)[j];
-        }
-        std::cout << std::endl;
-    }
-}
-
 std::vector<std::string> *get_test_files() {
     int num_tests = 10;
     std::vector<std::string> cases;
