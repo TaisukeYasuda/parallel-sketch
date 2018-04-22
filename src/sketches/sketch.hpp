@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <exception>
+#include <string>
 
 namespace sketch {
 /* Sketch interface
@@ -24,6 +26,19 @@ class sketch_interface {
     public:
         virtual void sketch(I *A, T *SA) = 0;
 };
+
+/* Exceptions */
+class bad_dimension : public std::exception {
+    std::string exception_msg;
+    public:
+        bad_dimension(const std::string& info) {
+            exception_msg = info;
+        }
+        virtual const char* msg() const throw() {
+            return exception_msg.c_str();
+        }
+};
+
 
 /* Oblivious sketch
  *
@@ -60,6 +75,8 @@ class gaussian_sketch : public oblivious_sketch<I, T> {
         gaussian_sketch(size_t p, size_t n);
         void sketch(I *A, T *SA);
         void sketch_right(I *A, T *SA);
+        static size_t eps_approx_rows(double eps, size_t n, size_t d);
+        const static size_t min_n = 10; // minimum rows required to sketch
     private:
         unsigned int seed;
         Eigen::MatrixXd *S;
@@ -69,16 +86,6 @@ template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
         count_sketch(size_t p, size_t n);
-        void sketch(I *A, T *SA);
-    private:
-        unsigned int seed;
-        Eigen::SparseMatrix<double> *S;
-};
-
-template <typename I, typename T>
-class uniform_sampling_sketch : public oblivious_sketch<I, T> {
-    public:
-        uniform_sampling_sketch(size_t p, size_t n);
         void sketch(I *A, T *SA);
     private:
         unsigned int seed;

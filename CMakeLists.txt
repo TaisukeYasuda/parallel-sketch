@@ -15,7 +15,6 @@ set(SOURCES
     src/sketches/adaptive_sketch.cpp
     src/sketches/gaussian_sketch.cpp
     src/sketches/count_sketch.cpp
-    src/sketches/uniform_sampling_sketch.cpp
     src/sketches/leverage_score_sketch.cpp
 )
 
