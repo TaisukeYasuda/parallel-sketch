@@ -59,6 +59,7 @@ class gaussian_projection : public oblivious_sketch<I, T> {
     public:
         gaussian_projection(size_t p, size_t n);
         void sketch(I *A, T *SA);
+        void sketch_right(I *A, T *SA);
     private:
         unsigned int seed;
         Eigen::MatrixXd *S;
