@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -Wall -g -std=c++11
-SKETCH_DIR = ../src/sketches
+SKETCH_DIR = ../src/sequential/sketches
 SKETCH_OBJ = $(shell find $(SKETCH_DIR) -name "*.o")
 
 test_obj: count_sketch_test.cpp

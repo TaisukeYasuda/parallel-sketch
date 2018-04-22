@@ -12,14 +12,18 @@ include_directories(deps/eigen-3.3.4/include/eigen3)
 include_directories(include)
 # set source files
 set(CXX_SOURCES
-    src/sketches/oblivious_sketch.cpp
-    src/sketches/adaptive_sketch.cpp
-    src/sketches/gaussian_sketch.cpp
-    src/sketches/count_sketch.cpp
-    src/sketches/leverage_score_sketch.cpp
+    src/sequential/sketches/oblivious_sketch.cpp
+    src/sequential/sketches/adaptive_sketch.cpp
+    src/sequential/sketches/gaussian_sketch.cpp
+    src/sequential/sketches/count_sketch.cpp
+    src/sequential/sketches/leverage_score_sketch.cpp
 )
 set(CUDA_SOURCES
-    #src/sketches/count_sketch.cu
+    src/cuda/sketches/oblivious_sketch.cu
+    src/cuda/sketches/adaptive_sketch.cu
+    src/cuda/sketches/gaussian_sketch.cu
+    src/cuda/sketches/count_sketch.cu
+    src/cuda/sketches/leverage_score_sketch.cu
 )
 
 # copy test cases to binary directory
@@ -29,4 +33,5 @@ file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(count_sketch_test test/count_sketch_test ${CXX_SOURCES})
 add_executable(gaussian_sketch_test test/gaussian_sketch_test ${CXX_SOURCES})
 
-# cuda_add_executable()
+cuda_add_executable(count_sketch_test_cuda test/count_sketch_test ${CUDA_SOURCES})
+cuda_add_executable(gaussian_sketch_test_cuda test/gaussian_sketch_test ${CUDA_SOURCES})
