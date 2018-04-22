@@ -1,7 +1,5 @@
-#include <boost/numeric/ublas/matrix.hpp>
+#include <Eigen/Dense>
 #include "sketch.hpp"
-
-namespace bnu = boost::numeric::ublas;
 
 namespace sketch{
 
@@ -11,10 +9,10 @@ oblivious_sketch<I, T>::oblivious_sketch() {
 }
 
 template<typename I, typename T>
-oblivious_sketch<I, T>::oblivious_sketch(std::size_t num_rows, std::size_t num_cols) {
+oblivious_sketch<I, T>::oblivious_sketch(size_t p, size_t d) {
 
 }
 
-template class oblivious_sketch<bnu::matrix<float>, bnu::matrix<float> >;
+template class oblivious_sketch<Eigen::MatrixXd, Eigen::MatrixXd >;
 
 }

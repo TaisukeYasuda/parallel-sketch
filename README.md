@@ -4,7 +4,7 @@ sketching algorithms and downstream approximation algorithms. Our sequential
 implementation is written in C++ primarily for Boost matrices, while our
 parallel implementation is written in CUDA for NVIDIA GPUs.
 
-## Directory Organization
+## Directory organization
 ```
 .
 ├── docs
@@ -21,13 +21,15 @@ parallel implementation is written in CUDA for NVIDIA GPUs.
 ```
 
 ## Building the test
-This repository is designed around an out-of-source build using CMake. To build
-the project, run the following commands at the root directory of the project:
+This repository is designed around an out-of-source build using CMake. First
+buid the necessary dependencies by going to the `deps` directory and following
+the instructions there. Then, to build the project, run the following commands
+at the root directory of the project:
 ```bash
 parallel-sketch$ mkdir build
 parallel-sketch/build$ cmake ..
 parallel-sketch/build$ make
-parallel-sketch/build$ ./sketch_test
+parallel-sketch/build$ ./count_sketch_test
 ```
 Note that CMake copies the directory `test/data` into the `build` directory, so
 the testing code written in `test` may refer to `./data` and still access these
