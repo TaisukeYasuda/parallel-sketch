@@ -8,7 +8,7 @@ add_compile_options(-std=c++11)
 include_directories(deps/eigen-3.3.4/include/eigen3)
 
 # include headers
-include_directories(src/sketches)
+include_directories(include)
 # set source files
 set(SOURCES
     src/sketches/oblivious_sketch.cpp
