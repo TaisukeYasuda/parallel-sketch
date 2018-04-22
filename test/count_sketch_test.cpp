@@ -12,7 +12,7 @@ int main() {
     std::cout << "Testing Count Sketch" << std::endl;
 
     std::string test_dir = std::string("data/random_matrices/");
-    std::string res_dir = std::string("results/");
+    std::string res_dir = std::string("results/count_sketch/");
 
     std::vector<std::string> *names = get_test_files();
     std::vector< std::vector<double> > *temp;
