@@ -25,7 +25,7 @@ We refer to theorem 2.1 in \cite{dasgupta2003elementary}, which gives that
 suffices for a $(1+\varepsilon)$ subspace embedding. 
 
 \section{Leverage score sampling}
-For a given matrix $A\in\mathbb R^{n\times d}$ and $i\in[n]$, define the \emph{$i$th leverage score} to be
+We expand on the coefficients given in \url{http://www.cs.cmu.edu/afs/cs/user/dwoodruf/www/teaching/15859-fall17/weekFour.pdf}. For a given matrix $A\in\mathbb R^{n\times d}$ and $i\in[n]$, define the \emph{$i$th leverage score} to be
 \[
 	\ell_i := \sum_{j=1}^d U_{i,j}^2 = \norm{e_iU}_2^2
 \]
@@ -37,7 +37,7 @@ where $\beta<1$ is a fixed parameter. Then, we define the following leverage sco
 \[
 	S_{\text{leverage}} := D\Omega^\top
 \]
-with $D\in\mathbb R^{k\times k}$ and $\Omega\in\mathbb R^{n\times k}$ as follows. For each column $j\in[k]$ of $\Omega$ and $D$, sample a row index $i$ from the row distribution $(q_1,\dots,q_n)$ and set $\Omega_{i,j} = 1$ and $D_{i,i} = (q_i k)^{-1/2}$. Here, $\Omega$ serves as a sampling matrix and $D$ serves as a rescaling matrix. If $k = \Theta\left(\frac{d\log d}{\beta\varepsilon^2}\right)$, then $S_{\text{leverage}}$ is a $(1+\varepsilon)$ subspace embedding.
+with $D\in\mathbb R^{k\times k}$ and $\Omega\in\mathbb R^{n\times k}$ as follows. For each column $j\in[k]$ of $\Omega$ and $D$, sample a row index $i$ from the row distribution $(q_1,\dots,q_n)$ and set $\Omega_{i,j} = 1$ and $D_{i,i} = (q_i k)^{-1/2}$. Here, $\Omega$ serves as a sampling matrix and $D$ serves as a rescaling matrix. If $k = \Theta\left(\frac{d\log d}{\beta\varepsilon^2}\right)$, then $S_{\text{leverage}}$ is a $(1+\varepsilon)$ subspace embedding. 
 
 \subsection{Fast computation of leverage scores}
 \subsubsection{First attempt}
@@ -83,6 +83,25 @@ allows for efficient computation while giving an approximation factor of
 	(1\pm6\varepsilon)(1\pm1/2) = 1\pm(1/2+9\varepsilon).
 \]
 Then, we want to set $\beta = 1-(1/2+9\varepsilon)$ so we could set $\varepsilon = 1/36$ for $\beta = 1/4$ for example. 
+
+\subsection{Number of Samples}
+Now, we find $k$. Recall that we set $\beta = 1/4$. The result that we use, matrix Chernoff, is that for $\varepsilon>0$,
+\[
+	\Pr\left(\norm{W}_2>\varepsilon\right)\leq 2de^{-k\varepsilon^2/(\sigma^2+\gamma\varepsilon/3)}
+\]
+where $\gamma = 1+d/\beta$ and $\sigma^2 = d/\beta - 1$. Then,
+\[
+	\sigma^2 + \frac{\gamma\varepsilon}3\leq \frac43\frac{d}{\beta} + \frac23\leq \frac86\frac{d}{\beta}+\frac16\frac{d}{\beta} = \frac32\frac{d}\beta = 6d
+\]
+so to get $\delta < 1/100$, we can choose
+\[
+	k\geq \frac{C\cdot 6d\log d}{\varepsilon^2}
+\]
+where
+\[
+	2de^{-C6d\log d/6d} = 2de^{-C\log d} = 2d^{1-C}<\frac1{100}\impliedby 2^C>400\iff C>\log_2 400
+\]
+assuming $d\geq 2$. 
 
 \bibliographystyle{alpha}
 \bibliography{citations}
