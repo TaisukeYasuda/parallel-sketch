@@ -13,7 +13,7 @@ include_directories(src/sketches)
 set(SOURCES
     src/sketches/oblivious_sketch.cpp
     src/sketches/adaptive_sketch.cpp
-    src/sketches/gaussian_projection.cpp
+    src/sketches/gaussian_sketch.cpp
     src/sketches/count_sketch.cpp
     src/sketches/uniform_sampling_sketch.cpp
     src/sketches/leverage_score_sketch.cpp
@@ -24,4 +24,4 @@ file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # compile test code
 add_executable(count_sketch_test test/count_sketch_test ${SOURCES})
-add_executable(gaussian_projection_test test/gaussian_projection_test ${SOURCES})
+add_executable(gaussian_sketch_test test/gaussian_sketch_test ${SOURCES})

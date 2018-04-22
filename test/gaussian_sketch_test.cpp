@@ -8,9 +8,9 @@
 #include <stdio.h>
 
 int main() {
-    std::cout << "Testing Gaussian Projection" << std::endl;
+    std::cout << "Testing Gaussian Sketch" << std::endl;
     size_t p = 3, n = 20, d = 5;
-    sketch::gaussian_projection<Eigen::MatrixXd, Eigen::MatrixXd > S(p, n);
+    sketch::gaussian_sketch<Eigen::MatrixXd, Eigen::MatrixXd > S(p, n);
     Eigen::MatrixXd A(n, d);
     Eigen::MatrixXd SA;
 

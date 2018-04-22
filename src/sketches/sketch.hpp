@@ -55,9 +55,9 @@ class adaptive_sketch : public sketch_interface<I, T> {
  * Oblivious sketch instantiations
  */
 template <typename I, typename T>
-class gaussian_projection : public oblivious_sketch<I, T> {
+class gaussian_sketch : public oblivious_sketch<I, T> {
     public:
-        gaussian_projection(size_t p, size_t n);
+        gaussian_sketch(size_t p, size_t n);
         void sketch(I *A, T *SA);
         void sketch_right(I *A, T *SA);
     private:
