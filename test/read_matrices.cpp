@@ -10,12 +10,10 @@
 #include <algorithm>
 
 std::vector< std::vector<double> > *read_matrix(std::string filename) {
-    std::vector< std::vector<double> > *matrix = new std::vector< std::vector<double> >(0);
-
+    std::vector< std::vector<double> > *matrix = new std::vector< std::vector<double> >;
     std::ifstream infile(filename.c_str());
-    std::string line;
-
-    while(std::getline(infile, line, ',')) {
+   
+    for(std::string line; std::getline(infile, line, ','); ) {
         std::istringstream iss(line);
 
         std::vector<double> curr;
@@ -40,24 +38,21 @@ void print_matrix(std::vector< std::vector<double> > *m, int n, int k) {
     }
 }
 
-int main() {
+std::vector<std::string> *get_test_files() {
     int num_tests = 10;
     std::vector<std::string> cases;
-    cases.push_back("med_test");
     cases.push_back("small_test");
-
-    std::string test_dir = "random_matrices/";
+    cases.push_back("med_test");
+    
+    std::vector<std::string> *names = new std::vector<std::string>;
 
     for(int i = 0; i < cases.size(); i++){
         for(int j = 0; j < num_tests; j++){
             std::stringstream ss;
-            ss << test_dir << cases[i] << j << ".txt";
-
-            print_matrix(read_matrix(ss.str()), 5, 5);
+            ss << cases[i] << j << ".txt";
+            names->push_back(ss.str());
         }
     }
 
-
-
-    return 0;
+    return names;
 }
