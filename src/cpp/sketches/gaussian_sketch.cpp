@@ -12,6 +12,8 @@
 
 namespace sketch {
 
+namespace seq {
+
 template <typename I, typename T>
 gaussian_sketch<I, T>::gaussian_sketch(size_t p, size_t n) {
     S = new Eigen::MatrixXd(p, n);
@@ -54,5 +56,7 @@ size_t gaussian_sketch<I, T>::eps_approx_rows(double eps, size_t n, size_t d) {
 }
 
 template class gaussian_sketch<Eigen::MatrixXd, Eigen::MatrixXd >;
+
+}
 
 }

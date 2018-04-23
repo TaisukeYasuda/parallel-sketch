@@ -8,6 +8,9 @@
 #include <string>
 
 namespace sketch {
+
+namespace seq {
+
 /* Sketch interface
  *
  * @TODO Case implementation of sketch based on the input type I of A and input
@@ -106,6 +109,8 @@ class leverage_score_sketch : public adaptive_sketch<I, T> {
         unsigned int seed;
         Eigen::SparseMatrix<double> *S;
 };
+
+}
 
 }
 

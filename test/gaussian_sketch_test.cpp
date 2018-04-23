@@ -20,7 +20,7 @@ int main() {
         temp = read_matrix(test_dir + names->at(k));
 
         int n = temp->size(), p = 10, d = temp->at(0).size();
-        sketch::gaussian_sketch<Eigen::MatrixXd, Eigen::MatrixXd> S(p, n);
+        sketch::seq::gaussian_sketch<Eigen::MatrixXd, Eigen::MatrixXd> S(p, n);
         Eigen::MatrixXd A(n, d);
         Eigen::MatrixXd SA;
 

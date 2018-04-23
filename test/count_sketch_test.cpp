@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 #include "sketch.hpp"
+#include "sketch_cuda.h"
 #include "read_matrices.cpp"
 #include <iostream>
 #include <fstream>
@@ -8,7 +9,7 @@
 #include <algorithm>
 #include <stdio.h>
 
-int main() {
+int main(int argc, char *argv[]) {
     std::cout << "Testing Count Sketch" << std::endl;
 
     std::string test_dir = std::string("data/random_matrices/");
@@ -21,7 +22,7 @@ int main() {
         temp = read_matrix(test_dir + names->at(k));
 
         int n = temp->size(), p = 10, d = temp->at(0).size();
-        sketch::count_sketch<Eigen::MatrixXd, Eigen::MatrixXd> S(p, n);
+        sketch::seq::count_sketch<Eigen::MatrixXd, Eigen::MatrixXd> S(p, n);
         Eigen::MatrixXd A(n, d);
         Eigen::MatrixXd SA;
 
@@ -30,15 +31,15 @@ int main() {
                 A(i, j) = temp->at(i)[j];
             }
         }
-        
+
         S.sketch(&A, &SA);
 
-        std::stringstream ss; 
+        std::stringstream ss;
         ss << res_dir + names->at(k) + ".res";
-        
+
         std::ofstream outfile;
         outfile.open(ss.str());
-        
+
         outfile << A << std::endl;
         outfile.close();
     }

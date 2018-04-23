@@ -1,14 +1,14 @@
-
-
 #include "sketch.h"
 #include <random>
 #include <vector>
 
 namespace sketch {
 
+namespace par {
+
 template <typename I, typename T>
 count_sketch<I, T>::count_sketch(size_t p, size_t n_in) {
-    n = n_in; 
+    n = n_in;
     cudaMalloc(S, n * sizeof(int));
 
     std::random_device rd;
@@ -19,8 +19,7 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n_in) {
     int *temp = new int[n];
 
     for (unsigned int j = 0; j < n; j++) {
-        unsigned int i = rand_row(mt);
-        temp[j] = rand_sign(mt) * 2 - 1;
+        unsigned int i = rand_row(mt); temp[j] = rand_sign(mt) * 2 - 1;
     }
 
     cudaMemcpy(S, temp, n, cudaMemcpyHostToDevice);
@@ -28,12 +27,12 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n_in) {
     delete[] temp;
 }
 
-//Assume in_matrix is on device 
+// Assume in_matrix is on device
 template<typename I, typename T>
 __global__ void sketch_kernel(I *in_matrix, T *out_matrix, int *cols, int n) {
     int row = blockIdx.x * blockDim.x + threadIdx.x,
         col = blockIdx.y * blockDim.y + threadIdx.y;
-    
+
     __shared__ int shared_cols[n];
     __shared__ int signs[n];
 
@@ -41,7 +40,7 @@ __global__ void sketch_kernel(I *in_matrix, T *out_matrix, int *cols, int n) {
         int col_start = blockIdx.y * blockDim.y;
         for(int i = 0; i < n; i++)
             shared_cols[i] = fabs(cols[i]) - 1;
-            
+
             if(cols[i] < 0)
                 signs[i] = -1;
             else
@@ -68,7 +67,7 @@ void count_sketch<I, T>::sketch(I *A, T *SA) {
     dim3 gridDim(
         (rows + blockDim.x - 1) / blockDim.x,
         (cols + blockDim.y - 1) / blockDim.y);
-    
+
     sketch_kernel<<<gridDim, blockDim>>>(A, SA, S, n);
 
 }
@@ -81,5 +80,7 @@ size_t count_sketch<I, T>::eps_approx_rows(double eps, size_t n, size_t d) {
 }
 
 template class count_sketch<Eigen::MatrixXd, Eigen::MatrixXd >;
+
+}
 
 }

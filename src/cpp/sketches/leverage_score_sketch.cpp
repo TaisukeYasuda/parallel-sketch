@@ -12,6 +12,8 @@
 
 namespace sketch {
 
+namespace seq {
+
 template <typename I, typename T>
 leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n) {
     S = new Eigen::SparseMatrix<double>(p, n);
@@ -41,5 +43,7 @@ size_t leverage_score_sketch<I, T>::eps_approx_rows(
 }
 
 template class leverage_score_sketch<Eigen::MatrixXd, Eigen::MatrixXd >;
+
+}
 
 }

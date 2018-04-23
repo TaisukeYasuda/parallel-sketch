@@ -13,6 +13,8 @@
 
 namespace sketch {
 
+namespace seq {
+
 template <typename I, typename T>
 count_sketch<I, T>::count_sketch(size_t p, size_t n) {
     S = new Eigen::SparseMatrix<double>(p, n);
@@ -42,5 +44,7 @@ size_t count_sketch<I, T>::eps_approx_rows(double eps, size_t n, size_t d) {
 }
 
 template class count_sketch<Eigen::MatrixXd, Eigen::MatrixXd >;
+
+}
 
 }
