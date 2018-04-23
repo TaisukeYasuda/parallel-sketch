@@ -19,23 +19,26 @@ set(CXX_SOURCES
     src/cpp/sketches/leverage_score_sketch.cpp
 )
 set(CUDA_SOURCES
-    src/cuda/sketches/oblivious_sketch.cu
-    src/cuda/sketches/adaptive_sketch.cu
-    src/cuda/sketches/gaussian_sketch.cu
+    # src/cuda/sketches/oblivious_sketch.cu
+    # src/cuda/sketches/adaptive_sketch.cu
+    # src/cuda/sketches/gaussian_sketch.cu
     src/cuda/sketches/count_sketch.cu
-    src/cuda/sketches/leverage_score_sketch.cu
+    # src/cuda/sketches/leverage_score_sketch.cu
 )
 # make libraries
-add_library(cpp_sketch ${CXX_SOURCES})
+add_library(sketch ${CXX_SOURCES} ${CUDA_SOURCES})
 
 # copy test cases to binary directory
 file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+# add results directory for test cases
+file(MAKE_DIRECTORY build/results build/results/count_sketch)
+
 # compile test code
 add_executable(count_sketch_test test/count_sketch_test)
 add_executable(gaussian_sketch_test test/gaussian_sketch_test)
-target_link_libraries(count_sketch_test cpp_sketch)
-target_link_libraries(gaussian_sketch_test cpp_sketch)
+target_link_libraries(count_sketch_test sketch)
+target_link_libraries(gaussian_sketch_test sketch)
 
 # cuda_add_executable(count_sketch_test_cuda test/count_sketch_test ${CUDA_SOURCES})
 # cuda_add_executable(gaussian_sketch_test_cuda test/gaussian_sketch_test ${CUDA_SOURCES})
