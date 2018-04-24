@@ -35,11 +35,7 @@ file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(MAKE_DIRECTORY build/results build/results/count_sketch)
 
 # compile test code
-add_executable(count_sketch_test test/count_sketch_test.cpp)
-add_executable(gaussian_sketch_test test/gaussian_sketch_test.cpp)
 add_executable(test_sketch test/test_sketch.cpp)
-target_link_libraries(count_sketch_test sketch)
-target_link_libraries(gaussian_sketch_test sketch)
 target_link_libraries(test_sketch sketch)
 
 # cuda_add_executable(count_sketch_test_cuda test/count_sketch_test ${CUDA_SOURCES})
