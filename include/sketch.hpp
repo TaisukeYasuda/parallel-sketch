@@ -52,7 +52,7 @@ template <typename I, typename T>
 class oblivious_sketch : public sketch_interface<I, T> {
     public:
         oblivious_sketch();
-        oblivious_sketch(size_t p, size_t d);
+        oblivious_sketch(size_t n, size_t d, double eps);
 };
 
 /* Adaptive sketch
@@ -66,7 +66,7 @@ template <typename I, typename T>
 class adaptive_sketch : public sketch_interface<I, T> {
     public:
         adaptive_sketch();
-        adaptive_sketch(size_t p, size_t d);
+        adaptive_sketch(size_t n, size_t d, double eps);
 };
 
 /*
@@ -75,10 +75,9 @@ class adaptive_sketch : public sketch_interface<I, T> {
 template <typename I, typename T>
 class gaussian_sketch : public oblivious_sketch<I, T> {
     public:
-        gaussian_sketch(size_t p, size_t n);
+        gaussian_sketch(size_t n, size_t d, double eps);
         void sketch(I *A, T *SA);
-        void sketch_right(I *A, T *SA);
-        static size_t eps_approx_rows(double eps, size_t n, size_t d);
+        static size_t eps_approx_rows(size_t n, size_t d, double eps);
         const static size_t min_n = 10; // minimum rows required to sketch
     private:
         unsigned int seed;
@@ -88,9 +87,9 @@ class gaussian_sketch : public oblivious_sketch<I, T> {
 template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
-        count_sketch(size_t p, size_t n);
+        count_sketch(size_t n, size_t d, double eps);
         void sketch(I *A, T *SA);
-        static size_t eps_approx_rows(double eps, size_t n, size_t d);
+        static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
         unsigned int seed;
         Eigen::SparseMatrix<double> *S;
@@ -102,9 +101,9 @@ class count_sketch : public oblivious_sketch<I, T>  {
 template <typename I, typename T>
 class leverage_score_sketch : public adaptive_sketch<I, T> {
     public:
-        leverage_score_sketch(size_t p, size_t n);
+        leverage_score_sketch(size_t n, size_t d, double eps);
         void sketch(I *A, T *SA);
-        static size_t eps_approx_rows(double eps, size_t n, size_t d);
+        static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
         unsigned int seed;
         Eigen::SparseMatrix<double> *S;

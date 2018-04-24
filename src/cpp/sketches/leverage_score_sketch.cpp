@@ -15,7 +15,8 @@ namespace sketch {
 namespace seq {
 
 template <typename I, typename T>
-leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n) {
+leverage_score_sketch<I, T>::leverage_score_sketch(size_t n, size_t d, double eps) {
+    size_t p = leverage_score_sketch<I, T>::eps_approx_rows(n, d, eps);
     S = new Eigen::SparseMatrix<double>(p, n);
     std::random_device rd;
     seed = rd();
@@ -23,13 +24,12 @@ leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n) {
 
 template <typename I, typename T>
 void leverage_score_sketch<I, T>::sketch(I *A, T *SA) {
-    // @TODO compute leverage scores and sample
     (*SA) = (*S) * (*A);
 }
 
 template <typename I, typename T>
 size_t leverage_score_sketch<I, T>::eps_approx_rows(
-        double eps, size_t n, size_t d) {
+        size_t n, size_t d, double eps) {
     if (d <= 1) {
         std::string info;
         info = std::string("Too few columns. Expected at least 2 columns.");

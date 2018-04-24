@@ -14,6 +14,8 @@
 #define SKETCH_TYPE 3
 
 int main(int argc, char *argv[]) {
+    typedef Eigen::MatrixXd M;
+
     std::cout << "Testing " << argv[SKETCH_TYPE] << std::endl;
 
     std::string test_dir = std::string(argv[INPUT]);
@@ -23,20 +25,23 @@ int main(int argc, char *argv[]) {
     std::vector< std::vector<double> > *temp;
     temp = read_matrix(test_dir);
 
-    size_t n = temp->size(), p = 10, d = temp->at(0).size();
-    sketch::seq::sketch_interface<Eigen::MatrixXd, Eigen::MatrixXd> *S;
+    size_t n = temp->size(), d = temp->at(0).size(), p;
+    double eps = 0.1;
+    sketch::seq::sketch_interface<M, M> *S;
 
     if (sketch_type.compare("count_sketch") == 0) {
-        S = new sketch::seq::count_sketch<Eigen::MatrixXd, Eigen::MatrixXd>(p, n);
+        p = sketch::seq::count_sketch<M, M>::eps_approx_rows(n, d, eps);
+        S = new sketch::seq::count_sketch<M, M>(n, d, eps);
     } else if (sketch_type.compare("gaussian_sketch") == 0) {
-        S = new sketch::seq::count_sketch<Eigen::MatrixXd, Eigen::MatrixXd>(p, n);
+        p = sketch::seq::gaussian_sketch<M, M>::eps_approx_rows(n, d, eps);
+        S = new sketch::seq::gaussian_sketch<M, M>(n, d, eps);
     } else {
         std::cerr << "Invalid sketch type." << std::endl;
         exit(1);
     }
 
-    Eigen::MatrixXd A(n, d);
-    Eigen::MatrixXd SA(p, d);
+    M A(n, d);
+    M SA(p, d);
 
     for (unsigned int i = 0; i < n; i++) {
         for (unsigned int j = 0; j < d; j++) {
