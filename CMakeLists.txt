@@ -40,3 +40,5 @@ target_link_libraries(test_sketch sketch)
 
 # cuda_add_executable(count_sketch_test_cuda test/count_sketch_test ${CUDA_SOURCES})
 # cuda_add_executable(gaussian_sketch_test_cuda test/gaussian_sketch_test ${CUDA_SOURCES})
+
+file(COPY test/regress.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
