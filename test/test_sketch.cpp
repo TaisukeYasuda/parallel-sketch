@@ -1,7 +1,7 @@
 #include <Eigen/Dense>
 #include "sketch.hpp"
 #include "sketch_cuda.h"
-#include "read_matrices.cpp"
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -12,6 +12,24 @@
 #define INPUT 1
 #define OUTPUT 2
 #define SKETCH_TYPE 3
+
+std::vector< std::vector<double> > *read_matrix(std::string filename) {
+    std::vector< std::vector<double> > *matrix = new std::vector< std::vector<double> >;
+    std::ifstream infile(filename.c_str());
+
+    for(std::string line; std::getline(infile, line);) {
+        std::istringstream iss(line);
+
+        std::vector<double> curr;
+
+        for(std::string temp; std::getline(iss, temp, ',');)
+            curr.push_back(std::stod(temp));
+
+        matrix->push_back(curr);
+    }
+
+    return matrix;
+}
 
 int main(int argc, char *argv[]) {
     typedef Eigen::MatrixXd M;
