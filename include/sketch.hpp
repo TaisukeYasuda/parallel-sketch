@@ -14,9 +14,10 @@ namespace seq {
 template <typename T>
 class count_min_sketch {
     public:
-        count_min_sketch(size_t n, size_t k);
+        count_min_sketch(size_t d, size_t w);
         T get(size_t j);
         void add(size_t j, T x);
+        void add_vec(std::vector *v);
     private:
         std::vector<size_t> *h;
         std::vector< std::vector<T> > *CM;
