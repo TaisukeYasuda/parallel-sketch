@@ -16,8 +16,7 @@ namespace sketch {
 namespace seq {
 
 template <typename I, typename T>
-count_sketch<I, T>::count_sketch(size_t n, size_t d, double eps) {
-    size_t p = count_sketch<I, T>::eps_approx_rows(n, d, eps);
+count_sketch<I, T>::count_sketch(size_t p, size_t n) {
     S = new Eigen::SparseMatrix<double>(p, n);
     std::random_device rd;
     seed = rd();

@@ -11,7 +11,7 @@ oblivious_sketch<I, T>::oblivious_sketch() {
 }
 
 template<typename I, typename T>
-oblivious_sketch<I, T>::oblivious_sketch(size_t n, size_t d, double eps) {
+oblivious_sketch<I, T>::oblivious_sketch(size_t p, size_t n) {
 
 }
 

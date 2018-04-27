@@ -52,7 +52,7 @@ template <typename I, typename T>
 class oblivious_sketch : public sketch_interface<I, T> {
     public:
         oblivious_sketch();
-        oblivious_sketch(size_t n, size_t d, double eps);
+        oblivious_sketch(size_t p, size_t n);
 };
 
 /* Adaptive sketch
@@ -66,7 +66,7 @@ template <typename I, typename T>
 class adaptive_sketch : public sketch_interface<I, T> {
     public:
         adaptive_sketch();
-        adaptive_sketch(size_t n, size_t d, double eps);
+        adaptive_sketch(size_t p, size_t n);
 };
 
 /*
@@ -75,7 +75,7 @@ class adaptive_sketch : public sketch_interface<I, T> {
 template <typename I, typename T>
 class gaussian_sketch : public oblivious_sketch<I, T> {
     public:
-        gaussian_sketch(size_t n, size_t d, double eps);
+        gaussian_sketch(size_t p, size_t n);
         void sketch(I *A, T *SA);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
         const static size_t min_n = 10; // minimum rows required to sketch
@@ -87,7 +87,7 @@ class gaussian_sketch : public oblivious_sketch<I, T> {
 template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
-        count_sketch(size_t n, size_t d, double eps);
+        count_sketch(size_t p, size_t n);
         void sketch(I *A, T *SA);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
@@ -101,12 +101,16 @@ class count_sketch : public oblivious_sketch<I, T>  {
 template <typename I, typename T>
 class leverage_score_sketch : public adaptive_sketch<I, T> {
     public:
-        leverage_score_sketch(size_t n, size_t d, double eps);
+        leverage_score_sketch(size_t p, size_t n);
         void sketch(I *A, T *SA);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
         unsigned int seed;
         Eigen::SparseMatrix<double> *S;
+        size_t _n;
+        size_t _d;
+        double _eps;
+        size_t _p;
 };
 
 }

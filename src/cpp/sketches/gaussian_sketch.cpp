@@ -15,8 +15,7 @@ namespace sketch {
 namespace seq {
 
 template <typename I, typename T>
-gaussian_sketch<I, T>::gaussian_sketch(size_t n, size_t d, double eps) {
-    size_t p = gaussian_sketch<I, T>::eps_approx_rows(n, d, eps);
+gaussian_sketch<I, T>::gaussian_sketch(size_t p, size_t n) {
     S = new Eigen::MatrixXd(p, n);
     std::random_device rd;
     seed = rd();
