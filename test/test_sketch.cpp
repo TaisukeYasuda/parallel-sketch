@@ -44,15 +44,18 @@ int main(int argc, char *argv[]) {
     temp = read_matrix(test_dir);
 
     size_t n = temp->size(), d = temp->at(0).size(), p;
-    double eps = 0.1;
+    double eps = 0.5;
     sketch::seq::sketch_interface<M, M> *S;
 
     if (sketch_type.compare("count_sketch") == 0) {
         p = sketch::seq::count_sketch<M, M>::eps_approx_rows(n, d, eps);
-        S = new sketch::seq::count_sketch<M, M>(n, d, eps);
+        S = new sketch::seq::count_sketch<M, M>(p, n);
     } else if (sketch_type.compare("gaussian_sketch") == 0) {
         p = sketch::seq::gaussian_sketch<M, M>::eps_approx_rows(n, d, eps);
-        S = new sketch::seq::gaussian_sketch<M, M>(n, d, eps);
+        S = new sketch::seq::gaussian_sketch<M, M>(p, n);
+    } else if (sketch_type.compare("leverage_score_sketch") == 0) {
+        p = sketch::seq::leverage_score_sketch<M, M>::eps_approx_rows(n, d, eps);
+        S = new sketch::seq::leverage_score_sketch<M, M>(p, n);
     } else {
         std::cerr << "Invalid sketch type." << std::endl;
         exit(1);
@@ -67,6 +70,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    std::cout << "\tCreated sketch of size " << p << std::endl;
     S->sketch(&A, &SA);
 
     std::ofstream outfile;

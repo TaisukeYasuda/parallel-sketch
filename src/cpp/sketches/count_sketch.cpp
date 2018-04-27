@@ -39,8 +39,7 @@ void count_sketch<I, T>::sketch(I *A, T *SA) {
 template <typename I, typename T>
 size_t count_sketch<I, T>::eps_approx_rows(size_t n, size_t d, double eps) {
     double delta = 0.01; // failure rate of 1/100
-    size_t k = 6 * d*d / (delta * eps*eps);
-    return std::min(n, k);
+    return 6 * d*d / (delta * eps*eps);
 }
 
 template class count_sketch<Eigen::MatrixXd, Eigen::MatrixXd >;

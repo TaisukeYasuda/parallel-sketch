@@ -56,4 +56,3 @@ for sketch in sketch_type:
             outfile_seq = outfile_temps % (sketch + s_types[0], test)
             outfile_par = outfile_temps % (sketch + s_types[1], test)
             print (test + ' same?: ' + str(filecmp.cmp(outfile_seq, outfile_par)))'''
-
