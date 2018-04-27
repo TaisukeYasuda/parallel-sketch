@@ -43,9 +43,17 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA) {
         // find a QR decomposition of SA
         Eigen::HouseholderQR<T> qr(SA_count->rows(), SA_count->cols());
         qr.compute(*SA_count);
+
+        // sanity check
         T Q = qr.householderQ(); // don't actually need
+        T thinQ(Eigen::MatrixXd::Identity(n, d));
+        Q = Q * thinQ;
+        std::cout << Q.rowwise().squaredNorm() / d << std::endl;
+        std::cout << Q.rowwise().squaredNorm().sum() / d << std::endl;
+
         T squareR(Eigen::MatrixXd::Identity(d, n));
         T R = squareR * qr.matrixQR().template triangularView<Eigen::Upper>();
+        R = R.inverse();
         // compute ARG for a gaussian sketch G
         size_t p_gauss;
         try {
@@ -64,7 +72,11 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA) {
         }
         T A_transpose = A->transpose();
         T ARG_transpose = RG_transpose * A_transpose;
-        // col norms of ARG_transpose are estimates of leverage scores
+        // scaled col norms of ARG_transpose are estimates of leverage scores
+        double beta = 4.0 / 7.0;
+        auto q = beta * ARG_transpose.colwise().squaredNorm() / d;
+        std::cout << q << std::endl;
+        std::cout << q.sum() << std::endl;
         // sample
         // mark as sketched
         this->sketched = true;
@@ -82,8 +94,9 @@ size_t leverage_score_sketch<I, T>::eps_approx_rows(
         throw bad_dimension(info);
     } else {
         double delta = 0.01;
+        double beta = 4.0 / 7.0;
         double c = 1 + log(2.0 / delta) / log(d * 1.0);
-        return (int) ceil(c * 4.0 / 3.0 * d * log(d) / (eps * eps));
+        return (int) ceil(c * 4.0 / 3.0 * d / beta * log(d) / (eps * eps));
     }
 }
 
