@@ -34,7 +34,7 @@ T count_min_sketch<T>::get(size_t j) {
     size_t d = this->CM->size();
            w = this->CM->at(0).size();
     
-    T res = std::numeric_limits<T>::min();
+    T res = std::numeric_limits<T>::max();
 
     size_t hashed;
     for(size_t i = 0; i < d; i++) {
