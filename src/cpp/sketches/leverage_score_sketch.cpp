@@ -10,6 +10,7 @@
 #include "sketch.hpp"
 #include <math.h>
 #include <random>
+#include <vector>
 #include <iostream>
 
 namespace sketch {
@@ -18,7 +19,8 @@ namespace seq {
 
 template <typename I, typename T>
 leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n) {
-    this->S = new Eigen::SparseMatrix<double>(p, n);
+    this->D = new Eigen::SparseMatrix<double>(p, p); // diagonal rescaling
+    this->Omega = new Eigen::SparseMatrix<double>(p, n); // sampling
     std::random_device rd;
     this->seed = rd();
     this->_p = p;
@@ -40,17 +42,10 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA) {
         } else {
             SA_count = A;
         }
+
         // find a QR decomposition of SA
         Eigen::HouseholderQR<T> qr(SA_count->rows(), SA_count->cols());
         qr.compute(*SA_count);
-
-        // sanity check
-        T Q = qr.householderQ(); // don't actually need
-        T thinQ(Eigen::MatrixXd::Identity(n, d));
-        Q = Q * thinQ;
-        std::cout << Q.rowwise().squaredNorm() / d << std::endl;
-        std::cout << Q.rowwise().squaredNorm().sum() / d << std::endl;
-
         T squareR(Eigen::MatrixXd::Identity(d, n));
         T R = squareR * qr.matrixQR().template triangularView<Eigen::Upper>();
         R = R.inverse();
@@ -72,17 +67,35 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA) {
         }
         T A_transpose = A->transpose();
         T ARG_transpose = RG_transpose * A_transpose;
+
         // scaled col norms of ARG_transpose are estimates of leverage scores
         double beta = 4.0 / 7.0;
         auto q = beta * ARG_transpose.colwise().squaredNorm() / d;
-        std::cout << q << std::endl;
-        std::cout << q.sum() << std::endl;
-        // sample
+        double excess_probability = (1.0 - q.sum()) / n;
+
+        // sample, q_i is the above plus the excess probability
+        std::mt19937 mt(seed);
+        std::uniform_real_distribution<double> unif(0, 1);
+        std::vector<Eigen::Triplet<double> > Omega_entries;
+        std::vector<Eigen::Triplet<double> > D_entries;
+        for (unsigned int i = 0; i < this->_p; i++) {
+            double score = unif(mt), sum = 0, q_j = 0;
+            unsigned int j = -1;
+            while (sum < score) {
+                j++;
+                q_j = q(j) + excess_probability;
+                sum += q_j;
+            }
+            Omega_entries.push_back(Eigen::Triplet<double>(i, j, 1));
+            D_entries.push_back(Eigen::Triplet<double>(i, i, q_j));
+        }
+        this->Omega->setFromTriplets(Omega_entries.begin(), Omega_entries.end());
+        this->D->setFromTriplets(D_entries.begin(), D_entries.end());
+
         // mark as sketched
         this->sketched = true;
-    } else {
-        //(*SA) = (*S) * (*A);
     }
+    (*SA) = (*this->D) * (*this->Omega) * (*A);
 }
 
 template <typename I, typename T>

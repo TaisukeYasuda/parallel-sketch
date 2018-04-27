@@ -118,7 +118,8 @@ class leverage_score_sketch : public adaptive_sketch<I, T> {
     private:
         bool sketched;
         unsigned int seed;
-        Eigen::SparseMatrix<double> *S;
+        Eigen::SparseMatrix<double> *Omega;
+        Eigen::SparseMatrix<double> *D;
         size_t _n;
         size_t _p;
         double _eps;
