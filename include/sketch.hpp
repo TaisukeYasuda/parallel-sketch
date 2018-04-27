@@ -17,12 +17,12 @@ class count_min_sketch {
         count_min_sketch(size_t d, size_t w);
         T get(size_t j);
         void add(size_t j, T x);
-        void add_vec(std::vector *v);
+        void add_vec(std::vector<T> *v);
     private:
         std::vector<size_t> *h;
         std::vector< std::vector<T> > *CM;
 
-}
+};
 
 /* Sketch interface
  *

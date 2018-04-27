@@ -59,7 +59,7 @@ void count_min_sketch<T>::add(size_t j, T x) {
 }
 
 template <typename T>
-void count_min_sketch<T>::add_vec(std::vector *v) {
+void count_min_sketch<T>::add_vec(std::vector<T> *v) {
     size_t d = this->CM->size();
            w = this->CM->at(0).size();
     
