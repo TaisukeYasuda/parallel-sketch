@@ -11,6 +11,18 @@ namespace sketch {
 
 namespace seq {
 
+template <typename T>
+class count_min_sketch {
+    public:
+        count_min_sketch(size_t n, size_t k);
+        T get(size_t j);
+        void add(size_t j, T x);
+    private:
+        std::vector<size_t> *h;
+        std::vector< std::vector<T> > *CM;
+
+}
+
 /* Sketch interface
  *
  * @TODO Case implementation of sketch based on the input type I of A and input
