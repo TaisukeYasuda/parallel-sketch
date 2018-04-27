@@ -45,8 +45,7 @@ size_t gaussian_sketch<I, T>::eps_approx_rows(size_t n, size_t d, double eps) {
         info += std::to_string(n) + std::string(".");
         throw bad_dimension(info);
     } else {
-        size_t k = (int) ceil(4 / (pow(eps, 2) / 2 - pow(eps, 3) / 3) * log(n));
-        return std::min(n, k);
+        return (int) ceil(4 / (pow(eps, 2) / 2 - pow(eps, 3) / 3) * log(n));
     }
 }
 

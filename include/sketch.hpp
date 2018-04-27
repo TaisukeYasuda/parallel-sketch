@@ -20,8 +20,7 @@ class count_min_sketch {
     private:
         std::vector<size_t> *h;
         std::vector< std::vector<T> > *CM;
-
-}
+};
 
 /* Sketch interface
  *
@@ -49,7 +48,7 @@ class bad_dimension : public std::exception {
         bad_dimension(const std::string& info) {
             exception_msg = info;
         }
-        virtual const char* msg() const throw() {
+        virtual const char* what() const throw() {
             return exception_msg.c_str();
         }
 };
@@ -117,12 +116,12 @@ class leverage_score_sketch : public adaptive_sketch<I, T> {
         void sketch(I *A, T *SA);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
+        bool sketched;
         unsigned int seed;
         Eigen::SparseMatrix<double> *S;
         size_t _n;
-        size_t _d;
-        double _eps;
         size_t _p;
+        double _eps;
 };
 
 }
