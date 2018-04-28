@@ -90,7 +90,8 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA) {
                 sum += q_j;
             }
             Omega_entries.push_back(Eigen::Triplet<double>(i, j, 1));
-            D_entries.push_back(Eigen::Triplet<double>(i, i, q_j));
+            double scale = 1.0 / sqrt(q_j * this->_p);
+            D_entries.push_back(Eigen::Triplet<double>(i, i, scale));
         }
         this->Omega->setFromTriplets(Omega_entries.begin(), Omega_entries.end());
         this->D->setFromTriplets(D_entries.begin(), D_entries.end());

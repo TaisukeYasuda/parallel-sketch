@@ -1,6 +1,6 @@
 #include <Eigen/Dense>
 #include "sketch.hpp"
-#include "sketch_cuda.h"
+#include "util.hpp"
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -14,25 +14,7 @@
 #define SKETCH_TYPE 3
 
 #define SEED 116
-#define MAX_ROWS 10000
-
-std::vector< std::vector<double> > *read_matrix(std::string filename) {
-    std::vector< std::vector<double> > *matrix = new std::vector< std::vector<double> >;
-    std::ifstream infile(filename.c_str());
-
-    for(std::string line; std::getline(infile, line);) {
-        std::istringstream iss(line);
-
-        std::vector<double> curr;
-
-        for(std::string temp; std::getline(iss, temp, ',');)
-            curr.push_back(std::stod(temp));
-
-        matrix->push_back(curr);
-    }
-
-    return matrix;
-}
+#define MAX_ROWS 500
 
 int main(int argc, char *argv[]) {
     typedef Eigen::MatrixXd M;
@@ -52,22 +34,31 @@ int main(int argc, char *argv[]) {
 
     if (sketch_type.compare("count_sketch") == 0) {
         p = sketch::seq::count_sketch<M, M>::eps_approx_rows(n, d, eps);
+        if (p > MAX_ROWS) {
+            p = MAX_ROWS;
+            std::cout << "\tSketch size cappedd to " << p << std::endl;
+        }
         S = new sketch::seq::count_sketch<M, M>(p, n, SEED);
     } else if (sketch_type.compare("gaussian_sketch") == 0) {
         p = sketch::seq::gaussian_sketch<M, M>::eps_approx_rows(n, d, eps);
+        if (p > MAX_ROWS) {
+            p = MAX_ROWS;
+            std::cout << "\tSketch size cappedd to " << p << std::endl;
+        }
         S = new sketch::seq::gaussian_sketch<M, M>(p, n, SEED);
     } else if (sketch_type.compare("leverage_score_sketch") == 0) {
         p = sketch::seq::leverage_score_sketch<M, M>::eps_approx_rows(n, d, eps);
+        if (p > MAX_ROWS) {
+            p = MAX_ROWS;
+            std::cout << "\tSketch size cappedd to " << p << std::endl;
+        }
         S = new sketch::seq::leverage_score_sketch<M, M>(p, n, SEED);
     } else {
         std::cerr << "Invalid sketch type." << std::endl;
         exit(1);
     }
 
-    if (p > MAX_ROWS) {
-        std::cerr << "Too many rows in the sketch." << std::endl;
-        exit(1);
-    }
+    std::cout << "\tCreated sketch of size " << p << std::endl;
 
     M A(n, d);
     M SA(p, d);
@@ -78,12 +69,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::cout << "\tCreated sketch of size " << p << std::endl;
     S->sketch(&A, &SA);
+
+    Eigen::IOFormat numpy_format(Eigen::StreamPrecision, 0, ",", "\n", "", "", "", "");
 
     std::ofstream outfile;
     outfile.open(res_dir.c_str());
-    outfile << SA << std::endl;
+    outfile << SA.format(numpy_format) << std::endl;
     outfile.close();
 
     return 0;
