@@ -19,11 +19,10 @@ namespace sketch {
 namespace seq {
 
 template <typename I, typename T>
-leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n) {
+leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n, unsigned int s) {
     this->D = new Eigen::SparseMatrix<double>(p, p); // diagonal rescaling
     this->Omega = new Eigen::SparseMatrix<double>(p, n); // sampling
-    std::random_device rd;
-    this->seed = rd();
+    this->seed = s;
     this->_p = p;
     this->_n = n;
     this->sketched = false;

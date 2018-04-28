@@ -13,6 +13,8 @@
 #define OUTPUT 2
 #define SKETCH_TYPE 3
 
+#define MAX_ROWS 10000
+
 std::vector< std::vector<double> > *read_matrix(std::string filename) {
     std::vector< std::vector<double> > *matrix = new std::vector< std::vector<double> >;
     std::ifstream infile(filename.c_str());
@@ -58,6 +60,11 @@ int main(int argc, char *argv[]) {
         S = new sketch::seq::leverage_score_sketch<M, M>(p, n);
     } else {
         std::cerr << "Invalid sketch type." << std::endl;
+        exit(1);
+    }
+
+    if (p > MAX_ROWS) {
+        std::cerr << "Too many rows in the sketch." << std::endl;
         exit(1);
     }
 
