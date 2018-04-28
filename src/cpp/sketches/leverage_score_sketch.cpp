@@ -8,6 +8,7 @@
 #include <Eigen/Sparse>
 #include <Eigen/QR>
 #include "sketch.hpp"
+#include "util.hpp"
 #include <math.h>
 #include <random>
 #include <vector>
@@ -27,6 +28,9 @@ leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n) {
     this->_n = n;
     this->sketched = false;
 }
+
+template <typename I, typename T>
+leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n) : leverage_score_sketch<I, T>::leverage_score_sketch(p, n, random_seed()) {}
 
 template <typename I, typename T>
 void leverage_score_sketch<I, T>::sketch(I *A, T *SA) {

@@ -17,6 +17,7 @@ set(CXX_SOURCES
     src/cpp/sketches/gaussian_sketch.cpp
     src/cpp/sketches/count_sketch.cpp
     src/cpp/sketches/leverage_score_sketch.cpp
+    src/cpp/sketches/util.cpp
 )
 set(CUDA_SOURCES
     # src/cuda/sketches/oblivious_sketch.cu

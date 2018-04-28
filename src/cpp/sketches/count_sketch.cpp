@@ -8,6 +8,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include "sketch.hpp"
+#include "util.hpp"
 #include <random>
 #include <vector>
 
@@ -16,10 +17,9 @@ namespace sketch {
 namespace seq {
 
 template <typename I, typename T>
-count_sketch<I, T>::count_sketch(size_t p, size_t n) {
+count_sketch<I, T>::count_sketch(size_t p, size_t n, unsigned int s) {
     S = new Eigen::SparseMatrix<double>(p, n);
-    std::random_device rd;
-    seed = rd();
+    seed = s;
     std::mt19937 mt(seed);
     std::uniform_int_distribution<int> rand_row(0, p-1);
     std::uniform_int_distribution<int> rand_sign(0, 1);
@@ -30,6 +30,9 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n) {
     }
     S->setFromTriplets(entries.begin(), entries.end());
 }
+
+template <typename I, typename T>
+count_sketch<I, T>::count_sketch(size_t p, size_t n) : count_sketch<I, T>::count_sketch(p, n, random_seed()) {}
 
 template <typename I, typename T>
 void count_sketch<I, T>::sketch(I *A, T *SA) {

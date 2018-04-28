@@ -6,6 +6,7 @@
 
 #include <Eigen/Dense>
 #include "sketch.hpp"
+#include "util.hpp"
 #include <math.h>
 #include <random>
 #include <algorithm>
@@ -15,10 +16,9 @@ namespace sketch {
 namespace seq {
 
 template <typename I, typename T>
-gaussian_sketch<I, T>::gaussian_sketch(size_t p, size_t n) {
+gaussian_sketch<I, T>::gaussian_sketch(size_t p, size_t n, unsigned int s) {
     S = new Eigen::MatrixXd(p, n);
-    std::random_device rd;
-    seed = rd();
+    seed = s;
     std::mt19937 mt(seed);
     double stddev = sqrt(1.0 / p);
     std::normal_distribution<> g(0, stddev);
@@ -26,6 +26,9 @@ gaussian_sketch<I, T>::gaussian_sketch(size_t p, size_t n) {
         for (unsigned int j = 0; j < n; j++)
             (*S)(i, j) = g(mt);
 }
+
+template <typename I, typename T>
+gaussian_sketch<I, T>::gaussian_sketch(size_t p, size_t n) : gaussian_sketch<I, T>::gaussian_sketch(p, n, random_seed()) {}
 
 template <typename I, typename T>
 void gaussian_sketch<I, T>::sketch(I *A, T *SA) {

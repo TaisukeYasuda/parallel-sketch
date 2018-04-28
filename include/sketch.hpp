@@ -88,6 +88,7 @@ template <typename I, typename T>
 class gaussian_sketch : public oblivious_sketch<I, T> {
     public:
         gaussian_sketch(size_t p, size_t n);
+        gaussian_sketch(size_t p, size_t n, unsigned int seed);
         void sketch(I *A, T *SA);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
         const static size_t min_n = 10; // minimum rows required to sketch
@@ -100,6 +101,7 @@ template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
         count_sketch(size_t p, size_t n);
+        count_sketch(size_t p, size_t n, unsigned int seed);
         void sketch(I *A, T *SA);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
@@ -114,6 +116,7 @@ template <typename I, typename T>
 class leverage_score_sketch : public adaptive_sketch<I, T> {
     public:
         leverage_score_sketch(size_t p, size_t n);
+        leverage_score_sketch(size_t p, size_t n, unsigned int seed);
         void sketch(I *A, T *SA);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
