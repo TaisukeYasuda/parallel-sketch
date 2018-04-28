@@ -13,6 +13,7 @@
 #define OUTPUT 2
 #define SKETCH_TYPE 3
 
+#define SEED 116
 #define MAX_ROWS 10000
 
 std::vector< std::vector<double> > *read_matrix(std::string filename) {
@@ -51,13 +52,13 @@ int main(int argc, char *argv[]) {
 
     if (sketch_type.compare("count_sketch") == 0) {
         p = sketch::seq::count_sketch<M, M>::eps_approx_rows(n, d, eps);
-        S = new sketch::seq::count_sketch<M, M>(p, n);
+        S = new sketch::seq::count_sketch<M, M>(p, n, SEED);
     } else if (sketch_type.compare("gaussian_sketch") == 0) {
         p = sketch::seq::gaussian_sketch<M, M>::eps_approx_rows(n, d, eps);
-        S = new sketch::seq::gaussian_sketch<M, M>(p, n);
+        S = new sketch::seq::gaussian_sketch<M, M>(p, n, SEED);
     } else if (sketch_type.compare("leverage_score_sketch") == 0) {
         p = sketch::seq::leverage_score_sketch<M, M>::eps_approx_rows(n, d, eps);
-        S = new sketch::seq::leverage_score_sketch<M, M>(p, n);
+        S = new sketch::seq::leverage_score_sketch<M, M>(p, n, SEED);
     } else {
         std::cerr << "Invalid sketch type." << std::endl;
         exit(1);
