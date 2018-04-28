@@ -2,6 +2,7 @@
 #include "util.hpp"
 #include <random>
 #include <vector>
+#include <stdio.h>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -16,7 +17,6 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n, unsigned int s) {
     _n = n;
     cudaMalloc((void**)&this->S, n * sizeof(int));
 
-    /*
     seed = s;
     std::mt19937 mt(seed);
     std::uniform_int_distribution<int> rand_row(0, p-1);
@@ -24,25 +24,28 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n, unsigned int s) {
     int *temp = new int[n];
 
     for (unsigned int j = 0; j < n; j++) {
-        unsigned int i = rand_row(mt); temp[j] = rand_sign(mt) * 2 - 1;
+        unsigned int i = rand_row(mt);
+        temp[j] = rand_sign(mt) * 2 - 1;
     }
 
     cudaMemcpy(S, temp, n, cudaMemcpyHostToDevice);
 
     delete[] temp;
-    */
 }
-
-//@TODO cudaFree in destructor
 
 template <typename I, typename T>
 count_sketch<I, T>::count_sketch(size_t p, size_t n) : count_sketch<I, T>::count_sketch(p, n, random_seed()) {}
 
+//@TODO cudaFree in destructor
+
 // Assume in_matrix is on device
 template<typename I, typename T>
-__global__ void sketch_kernel(I *in_matrix, T *out_matrix, int *cols, int n) {
+__global__ void sketch_kernel(I *in_matrix, T *out_matrix, int *cols, size_t n) {
     int row = blockIdx.x * blockDim.x + threadIdx.x,
         col = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (threadIdx.x == 0)
+        printf("calling from cuda!!!!\n");
 
     /*
     __shared__ int shared_cols[n];
@@ -75,23 +78,21 @@ __global__ void sketch_kernel(I *in_matrix, T *out_matrix, int *cols, int n) {
 
 template <typename I, typename T>
 void count_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
-    /*
-    int rows = n, cols = d ;//TODO get columns of A matrix
+    size_t rows = n, cols = d;
     dim3 blockDim(16, 16);
     dim3 gridDim(
         (rows + blockDim.x - 1) / blockDim.x,
         (cols + blockDim.y - 1) / blockDim.y);
 
     sketch_kernel<<<gridDim, blockDim>>>(A, SA, S, n);
-    */
-
+    cudaDeviceSynchronize();
 }
 
 template <typename I, typename T>
 size_t count_sketch<I, T>::eps_approx_rows(size_t n, size_t d, double eps) {
     double delta = 0.01; // failure rate of 1/100
     size_t k = 6 * d*d / (delta * eps*eps);
-    return std::min(n, k);
+    return k;
 }
 
 template class count_sketch<int*, int* >;

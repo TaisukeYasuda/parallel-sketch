@@ -37,12 +37,11 @@ std::vector< std::vector<double> > *read_matrix(std::string filename) {
 }
 
 int main(int argc, char *argv[]) {
-    //std::cout << "Testing CUDA " << argv[SKETCH_TYPE] << std::endl;
+    std::cout << "Testing CUDA " << argv[SKETCH_TYPE] << std::endl;
 
     std::string test_dir = std::string(argv[INPUT]);
     std::string res_dir = std::string(argv[OUTPUT]);
-    //std::string sketch_type = std::string(argv[SKETCH_TYPE]);
-    std::cout << "Testing CUDA count sketch" << std::endl;
+    std::string sketch_type = std::string(argv[SKETCH_TYPE]);
 
     std::vector< std::vector<double> > *temp;
     temp = read_matrix(test_dir);
@@ -70,6 +69,7 @@ int main(int argc, char *argv[]) {
     cudaMemcpy(device_input, A, A_size, cudaMemcpyHostToDevice);
 
     S = new sketch::par::count_sketch<int*, int*>(p, n, SEED);
+    S->sketch(&device_input, &device_result, n, d);
 
     /*
     if (sketch_type.compare("count_sketch") == 0) {
