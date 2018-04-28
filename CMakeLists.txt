@@ -4,6 +4,8 @@ find_package(CUDA QUIET REQUIRED)
 
 # C++11
 add_compile_options(-std=c++11)
+# include headers
+include_directories(include)
 
 ################################################################################
 #                                   CUDA                                       #
@@ -14,13 +16,11 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CUDA_HOST_COMPILER g++)
 list(APPEND CUDA_NVCC_FLAGS "-O3 --gpu-architecture compute_61 -std=c++11")
 
-# include headers
-include_directories(include)
-# set source files
+# set cuda source files
 set(CUDA_SOURCES
     src/cuda/sketches/oblivious_sketch.cu
     src/cuda/sketches/count_sketch.cu
-    src/cuda/sketches/util.cpp
+    src/util.cpp
 )
 
 # make libraries
@@ -44,22 +44,29 @@ set(CXX_SOURCES
     src/cpp/sketches/gaussian_sketch.cpp
     src/cpp/sketches/count_sketch.cpp
     src/cpp/sketches/leverage_score_sketch.cpp
-    src/cpp/sketches/util.cpp
+    src/util.cpp
 )
 # make libraries
 add_library(sketch ${CXX_SOURCES})
-
-# copy test cases to binary directory
-file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
-# add results directory for test cases
-file(MAKE_DIRECTORY build/results build/results/count_sketch)
 
 # compile test code
 add_executable(test_sketch test/test_sketch.cpp)
 target_link_libraries(test_sketch sketch)
 
-# cuda_add_executable(count_sketch_test_cuda test/count_sketch_test ${CUDA_SOURCES})
-# cuda_add_executable(gaussian_sketch_test_cuda test/gaussian_sketch_test ${CUDA_SOURCES})
+################################################################################
+#                                   Testing                                    #
+################################################################################
 
-file(COPY test/regress.py DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# compile subspace embedding
+add_executable(test_subspace_embedding
+    test/test_subspace_embedding.cpp
+    src/util.cpp
+)
+
+# copy test cases to binary directory
+file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY
+    test/regress.py
+    test/benchmark.py
+    test/gen_reference.py
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
