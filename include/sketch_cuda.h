@@ -2,14 +2,25 @@
 #define _SKETCH_H_INCLUDED
 
 #include <cstddef>
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
 #include <exception>
 #include <string>
 
 namespace sketch {
 
 namespace par {
+
+    /*
+template <typename T>
+class count_min_sketch {
+    public:
+        count_min_sketch(size_t d, size_t w);
+        T get(size_t j);
+        void add(size_t j, T x);
+        void add_vec(std::vector<T> *v);
+    private:
+        std::vector<size_t> *h;
+        std::vector< std::vector<T> > *CM;
+};*/
 
 /* Sketch interface
  *
@@ -27,7 +38,7 @@ namespace par {
 template <typename I, typename T>
 class sketch_interface {
     public:
-        virtual void sketch(I *A, T *SA) = 0;
+        virtual void sketch(I *A, T *SA, size_t n, size_t d) = 0;
 };
 
 /* Exceptions */
@@ -37,7 +48,7 @@ class bad_dimension : public std::exception {
         bad_dimension(const std::string& info) {
             exception_msg = info;
         }
-        virtual const char* msg() const throw() {
+        virtual const char* what() const throw() {
             return exception_msg.c_str();
         }
 };
@@ -52,7 +63,7 @@ template <typename I, typename T>
 class oblivious_sketch : public sketch_interface<I, T> {
     public:
         oblivious_sketch();
-        oblivious_sketch(size_t p, size_t d);
+        oblivious_sketch(size_t p, size_t n);
 };
 
 /* Adaptive sketch
@@ -62,54 +73,67 @@ class oblivious_sketch : public sketch_interface<I, T> {
  * sketches typically perform better than oblivious sketches since it has extra
  * information that it can use to construct the sketched matrix SA.
  */
+/*
 template <typename I, typename T>
 class adaptive_sketch : public sketch_interface<I, T> {
     public:
         adaptive_sketch();
-        adaptive_sketch(size_t p, size_t d);
+        adaptive_sketch(size_t p, size_t n);
 };
+*/
 
 /*
  * Oblivious sketch instantiations
  */
+/*
 template <typename I, typename T>
 class gaussian_sketch : public oblivious_sketch<I, T> {
     public:
         gaussian_sketch(size_t p, size_t n);
+        gaussian_sketch(size_t p, size_t n, unsigned int seed);
         void sketch(I *A, T *SA);
-        void sketch_right(I *A, T *SA);
-        static size_t eps_approx_rows(double eps, size_t n, size_t d);
+        static size_t eps_approx_rows(size_t n, size_t d, double eps);
         const static size_t min_n = 10; // minimum rows required to sketch
     private:
         unsigned int seed;
         Eigen::MatrixXd *S;
 };
+*/
 
 template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
-        count_sketch(size_t p, size_t n_in);
-        void sketch(I *A, T *SA);
-        static size_t eps_approx_rows(double eps, size_t n, size_t d);
+        count_sketch(size_t p, size_t n);
+        count_sketch(size_t p, size_t n, unsigned int seed);
+        void sketch(I *A, T *SA, size_t n, size_t d);
+        static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
         unsigned int seed;
         int *S;
-        size_t n;
+        size_t _n;
 };
 
 /*
  * Adaptive sketch instantiations
  */
+/*
 template <typename I, typename T>
 class leverage_score_sketch : public adaptive_sketch<I, T> {
     public:
         leverage_score_sketch(size_t p, size_t n);
+        leverage_score_sketch(size_t p, size_t n, unsigned int seed);
         void sketch(I *A, T *SA);
-        static size_t eps_approx_rows(double eps, size_t n, size_t d);
+        static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
+        bool sketched;
         unsigned int seed;
-        Eigen::SparseMatrix<double> *S;
+        Eigen::SparseMatrix<double> *Omega;
+        Eigen::SparseMatrix<double> *D;
+        size_t _n;
+        size_t _p;
+        double _eps;
 };
+*/
 
 }
 
