@@ -14,7 +14,7 @@ oblivious_sketch<I, T>::oblivious_sketch(size_t p, size_t n) {
 
 }
 
-template class oblivious_sketch<int*, int* >;
+template class oblivious_sketch<double*, double* >;
 
 }
 

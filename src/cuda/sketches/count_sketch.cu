@@ -45,7 +45,7 @@ __global__ void sketch_kernel(I *in_matrix, T *out_matrix, int *cols, size_t n) 
         col = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (threadIdx.x == 0)
-        printf("calling from cuda!!!!\n");
+        printf("tai calling from cuda!!!!\n");
 
     /*
     __shared__ int shared_cols[n];
@@ -95,7 +95,7 @@ size_t count_sketch<I, T>::eps_approx_rows(size_t n, size_t d, double eps) {
     return k;
 }
 
-template class count_sketch<int*, int* >;
+template class count_sketch<double*, double* >;
 
 }
 
