@@ -108,6 +108,7 @@ class count_sketch : public oblivious_sketch<I, T>  {
     private:
         unsigned int seed;
         int *S; // host
+        int *S_device; // device
         size_t _n;
 };
 

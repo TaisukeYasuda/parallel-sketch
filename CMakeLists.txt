@@ -20,7 +20,7 @@ list(APPEND CUDA_NVCC_FLAGS "-O3 --gpu-architecture compute_61 -std=c++11")
 set(CUDA_SOURCES
     src/cuda/sketches/oblivious_sketch.cu
     src/cuda/sketches/adaptive_sketch.cu
-    src/cuda/sketches/count_sketch.cu
+    src/cuda/sketches/count_sketch_basic.cu
     src/cuda/sketches/gaussian_sketch_basic.cu
     src/util.cpp
 )

@@ -1,3 +1,7 @@
+/*
+ * Ideas: read sections of A into shared memory.
+ */
+
 #include "sketch_cuda.h"
 #include "util.hpp"
 #include <random>
