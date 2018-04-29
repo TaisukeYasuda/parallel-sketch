@@ -1,7 +1,7 @@
 /*
  * Gaussian Sketch
  *
- * Naive sequential implementation of Gaussian projection.
+ * Naive sequential implementation of Gaussian sketch.
  */
 
 #include <Eigen/Dense>

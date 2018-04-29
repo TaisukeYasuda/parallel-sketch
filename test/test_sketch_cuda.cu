@@ -80,20 +80,16 @@ int main(int argc, char *argv[]) {
     S->sketch(&device_input, &device_result, n, d);
 
     /* copy from device */
-    cudaMemcpy(device_result, SA, SA_size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(SA, device_result, SA_size, cudaMemcpyDeviceToHost);
 
     std::ofstream outfile;
     outfile.open(res_dir.c_str());
     for (unsigned int i = 0; i < p; i++) {
-        for (unsigned int j = 0; j < d-1; j++) {
+        for (unsigned int j = 0; j < d-1; j++)
             outfile << SA[i*d + j] << ",";
-            std::cout << SA[i*d + j] << ",";
-        }
         outfile << SA[i*d + d-1] << std::endl;
-        std::cout << SA[i*d + d-1] << std::endl;
     }
     outfile << std::endl;
-    std::cout << std::endl;
     outfile.close();
 
     return 0;

@@ -1,7 +1,7 @@
 /*
  * Gaussian Sketch
  *
- * Naive parallel implementation of gaussian sketch with CUDA. This
+ * Naive parallel implementation of Gaussian sketch with CUDA. This
  * implementation is mostly just for making use of the GPU and doesn't attempt
  * to do any tricks. Gaussian matrix is sketched on host and only matrix
  * multiplication is done in parallel.
@@ -18,16 +18,16 @@
 #include <driver_functions.h>
 #include <cublas_v2.h>
 
-/* compute C(m, n) = A(m, k) * B(k, n) on device */
+/* compute C(p, d) = A(p, n) * B(n, d) on device, inputs in row major */
 void gpu_cublas_mmul(const double *A, const double *B, double *C,
-        size_t m, size_t k, size_t n) {
-    int lda = m, ldb = k, ldc = m;
+        size_t p, size_t n, size_t d) {
+    int lda = d, ldb = n, ldc = d;
     const double alpha = 1;
     const double beta = 0;
     cublasHandle_t handle;
     cublasCreate(&handle);
-    cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k,
-            &alpha, A, lda, B, ldb, &beta, C, ldc);
+    cublasDgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, d, p, n,
+            &alpha, B, lda, A, ldb, &beta, C, ldc);
     cublasDestroy(handle);
 }
 
