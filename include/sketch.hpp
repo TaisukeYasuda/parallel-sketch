@@ -18,6 +18,9 @@ class count_min_sketch {
         T get(size_t j);
         void add(size_t j, T x);
         void add_vec(std::vector<T> *v);
+        void add_const(double d);
+        void mult_const(double d);
+        void add_sketch(count_min_sketch<T> *CMS);
     private:
         std::vector<size_t> *h;
         std::vector< std::vector<T> > *CM;

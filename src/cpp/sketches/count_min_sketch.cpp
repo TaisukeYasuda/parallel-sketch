@@ -7,6 +7,7 @@
  */ 
 
 #include "sketch.hpp"
+#include <assert.h>
 #include <vector>
 #include <random>
 #include <limits>
@@ -70,6 +71,47 @@ void count_min_sketch<T>::add_vec(std::vector<T> *v) {
             this->CM->at(i)[hashed] += v->at(j);
         }
     }
+}
+
+
+
+template <typename T>
+void count_min_sketch<T>::add_const(double d) {
+    size_t d = this->CM->size();
+           w = this->CM->at(0).size();
+    
+    for(size_t i = 0; i < d; i++) {
+        for(size_t j = 0; j < w; j++) {
+            this->CM->at(i)[j] += d;
+        }
+    }
+}
+
+template <typename T>
+void count_min_sketch<T>::mult_const(double d) {
+    size_t d = this->CM->size();
+           w = this->CM->at(0).size();
+    
+    for(size_t i = 0; i < d; i++) {
+        for(size_t j = 0; j < w; j++) {
+            this->CM->at(i)[j] *= d;
+        }
+    }
+}
+
+template <typename T>
+void count_min_sketch<T>::add_sketch(count_min_sketch<T> *CMS) {
+    size_t d = this->CM->size();
+           w = this->CM->at(0).size();
+    
+    assert(d == CMS.CM->size() && w == CMS.CM->at(0).size());
+
+    for(size_t i = 0; i < d; i++) {
+        for(size_t j = 0; j < w; j++) {
+            this->CM->at(i)[j] += CMS->CM->at(i)[j];
+        }
+    }
+    
 }
 
 }
