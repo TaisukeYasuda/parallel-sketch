@@ -15,15 +15,13 @@ int main(int argc, char *argv[]) {
     std::ifstream graph_file(argv[GRAPH]);
     graph_file >> nodes >> edges;
 
-    std::vector< std::pair< std::pair<size_t, size_t>, size_t> > edge_list(edges);
+    std::vector< std::pair< std::pair<size_t, size_t>, double> > edge_list(edges);
 
-    size_t u, v, w, d, l, s_size, hashes, num_labels;
+    size_t u, v, d, l, s_size, hashes, num_labels;
     for(size_t i = 0; i < edges; i++) {
-        graph_file >> u >> v >> w;
-        
-        edge_list.first.first  = u;
-        edge_list.first.second = v;
-        edge_list.second       = w;
+        graph_file >> edge_list[i].first.first;
+        graph_file >> edge_list[i].first.second;
+        graph_file >> edge_list[i].second;
     }
 
     s_size = 23;
@@ -45,18 +43,20 @@ int main(int argc, char *argv[]) {
     double *p_cont = new double[nodes];
     double *p_abnd = new double[nodes];
 
+    sketch::seq::count_min_sketch<double> r(d, s_size, &hashes);
+
     for(size_t i = 0; i < nodes; i++) {
         p_inj[i]  = 1.0;
         p_cont[i] = 1.0;
-        p_abnd[i] = 1.0
+        p_abnd[i] = 1.0;
     }
 
     MAD_sketch SSL(nodes, d, s_size, 0.5, 0.5, 0.5, p_inj, p_cont, p_abnd,
-        &edge_list, &seeds);
+        &edge_list, &seeds, &r);
   
     SSL.run_sim(2);
     
-    std::vector< *sketch::seq::count_min_sketch<double> > *res = SSL.get_lables(&hashes);
+    std::vector< sketch::seq::count_min_sketch<double>* > *res = SSL.get_labels(&hashes);
     
     std::ifstream eval_file(argv[EVAL]);
     std::ofstream res_file("result.txt");

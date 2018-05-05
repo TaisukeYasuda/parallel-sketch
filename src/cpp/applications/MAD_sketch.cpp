@@ -13,30 +13,15 @@
 #include <algorithm>
 #include <random>
 
-inline size_t *make_hashes(size_t w) {
-    std::random_device rd;
-    std::mt19937 mt(rd());
-
-    //Hash function will be identiy xor random int
-    std::uniform_int_distribution<size_t> rand_hash;
-
-    size_t *hashes = new size_t[w];
-
-    for(size_t i = 0; i < d; i++)
-       hashes[i] = rand_hash(mt);
-
-    return hashes;
-}
-
-MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double mu_3_,
+MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double mu_3_,
     double *p_inj_, double *p_cont_, double *p_abnd_,
-    std::vector< std::pair< std::pair<size_t, size_t>, size_t> > *edge_list_,
+    std::vector< std::pair< std::pair<size_t, size_t>, double> > *edge_list_,
     std::vector< sketch::seq::count_min_sketch<double> > *seeds_,
-    std::vector< sketch::seq::count_min_sketch<double> > *rs_); {
+    sketch::seq::count_min_sketch<double> *r_) {
 
     std::sort(edge_list_->begin(), edge_list_->end());
 
-    this->Ms = new double[n_];
+    this->Mvv = new double[n_];
 
     this->mu_1 = mu_1_;
     this->mu_2 = mu_2_;
@@ -56,8 +41,8 @@ MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double m
     this->num_edges = edge_list_->size();
 
     this->edges = new size_t[this->num_edges * 2];
-    this->edge_factors = new size_t[this->num_edges]
-    this->Mvv   = new double[n_];
+    this->edge_factors = new double[this->num_edges];
+    this->Mvv = new double[n_];
 
     memset(this->Mvv, 0, n_ * sizeof(double));
 
@@ -66,15 +51,15 @@ MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double m
     
     for(size_t i = 0; i < this->num_edges; i++) {
         //Initialize graph
-        u = edge_list->at(i).first.first;
-        v = edge_list->at(i).first.second;
-        weight = edge_list->at(i).second;
+        u = edge_list_->at(i).first.first;
+        v = edge_list_->at(i).first.second;
+        weight = edge_list_->at(i).second;
 
-        this->edges[i]   = u
+        this->edges[i]   = u;
         this->edges[i+1] = v;
 
-        u_val = p_cont[u] * weight;
-        v_val = p_cont[v] * weight;
+        u_val = p_cont_[u] * weight;
+        v_val = p_cont_[v] * weight;
 
         this->edge_factors[i] = u_val + v_val;       
 
@@ -91,15 +76,15 @@ MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double m
     //Initialize labels
     this->Ys    = new double[seed_size];
     this->seeds = new double[seed_size];
-    this->rs    = new double[seed_size];
+    this->r     = new double[sketch_size];
 
-    memset(this->rs, 0, seed_size * sizeof(double));
+    memcpy(this->r, r_->get_CM(), sketch_size * sizeof(double));
+
     for(size_t i = 0; i < n_; i++){
-        this->Mvv[i] = 1.0 / ((this->Mvv->at(i) * mu_2) + p_inj_->at(i) * mu_1_ + mu_3_);
+        this->Mvv[i] = 1.0 / ((this->Mvv[i] * mu_2) + p_inj_[i] * mu_1_ + mu_3_);
     
         memcpy(this->Ys,    seeds_->at(i).get_CM(), sketch_size * sizeof(double));
         memcpy(this->seeds, seeds_->at(i).get_CM(), sketch_size * sizeof(double));
-        memcpy(this->rs, rs_->at(i).get_CM(), sketch_size * sizeof(double));
     }
 }
 
@@ -109,7 +94,7 @@ void MAD_sketch::run_sim(size_t iters) {
 
     double *temp_D = new double[seed_size];
 
-    size_t start_u, start_v;
+    size_t u, v, start_u, start_v;
     for(size_t z = 0; z < iters; z++) {
         memset(temp_D, 0, seed_size * sizeof(double));
         
@@ -132,24 +117,24 @@ void MAD_sketch::run_sim(size_t iters) {
             M_factor = this->Mvv[i];
             
             seed_factor = this->mu_1 * this->p_inj[i] * M_factor;
-            D_factor = this->mu_2 * M_factor;
-            r_factor = this->mu_3 * this->p_abnd[i] * M_factor;
+            D_factor    = this->mu_2 * M_factor;
+            r_factor    = this->mu_3 * this->p_abnd[i] * M_factor;
 
             start_v = i * sketch_size;
             for(size_t j = 0; j < sketch_size; j++) {
                 this->Ys[start_v + j] = (seed_factor * this->seeds[start_v + j] +
                                          D_factor * temp_D[start_v + j] +
-                                         r_factor * this->rs[start_v + j]);
+                                         r_factor * this->r[j]);
             }
         }
     }
 }
 
-std::vector< *sketch::seq::count_min_sketch<double> > *get_labels(double *hashes) {
+std::vector< sketch::seq::count_min_sketch<double>* > *MAD_sketch::get_labels(size_t *hashes) {
     
     size_t sketch_size = this->d * this->w;
-    std::vector< *sketch::seq::count_min_sketch<double> > *res = 
-        new std::vector< *sketch::seq::count_min_sketch<double> >(this->n);
+    std::vector< sketch::seq::count_min_sketch<double>* > *res = 
+        new std::vector< sketch::seq::count_min_sketch<double>* >(this->n);
 
     for(size_t i = 0; i < this->n; i++) {
         (*res)[i] = new sketch::seq::count_min_sketch<double>(this->d, this->w, hashes);
