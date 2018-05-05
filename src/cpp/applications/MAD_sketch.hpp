@@ -18,12 +18,19 @@ class MAD_sketch {
                 std::vector<double> p_abnd,
                 std::vector< std::pair< std::pair<size_t,size_t>, unsigned int> > *edge_list,
                 std::vector< std::vector<double> > *seeds);
+        void run_sim(size_t iterations);
+        std::vector< sketch::seq::count_min_sketch<double> > *get_labels();
     private:
         double mu_1;
         double mu_2;
         double mu_3;
-        std::vector<size_t> *edge_starts; //Has all starts of edges in edge list
+        std::vector<double> *p_inj;
+        std::vector<double> *p_abnd;
+        std::vector<double> *temp_W_sums;
+        std::vector<double> *rs;
+        std::vector<unsigned long> *hashes;
         std::vector<unsigned int> *edges; //Edge list itself
+        std::vector< sketch::seq::count_min_sketch > *seeds;
         std::vector< sketch::seq::count_min_sketch > *Ys; //Label scores
         std::vector<double> *Ms; //M vector
 }

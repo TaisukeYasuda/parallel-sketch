@@ -11,15 +11,27 @@
 #include <vector>
 #include <random>
 #include <limits>
+#include <algorithm>
+#include <iterator>
 
 namespace sketch {
 
 namespace seq {
 
 template <typename T>
+count_min_sketch<T>::count_min_sketch(size_t d, size_t w, size_t *hashes) {
+    this->w = w;
+    this->d = d;
+    this->CM = new T[d*w];
+    this->h  = new size_t[w];
+
+    memset(this->CM, 0, d * w * sizeof(T));
+    memcpy(this->h )
+}
+
+template <typename T>
 count_min_sketch<T>::count_min_sketch(size_t d, size_t w) {
-    this->CM = new std::vector< std::vector<T> >(d, std::vector<T>(w, 0));
-    this->h  = new std::vector<size_t>(w);
+
     std::random_device rd;
     std::mt19937 mt(rd());
 
@@ -112,6 +124,16 @@ void count_min_sketch<T>::add_sketch(count_min_sketch<T> *CMS) {
         }
     }
     
+}
+
+template<typename T>
+count_min_sketch<T> *count_min_sketch<T>::make_copy() {
+    size_t d = this->CM->size();
+           w = this->CM->at(0).size();
+    
+    count_min_sketch<T> *new_CM = new count_min_sketch<T>(d, w, this->h);
+    
+    return new_CM;
 }
 
 }
