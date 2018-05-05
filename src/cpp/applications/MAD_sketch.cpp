@@ -120,7 +120,7 @@ void MAD_sketch::run_sim(size_t iters) {
                temp_D[start_v + j] += factor * this->Ys[start_u + j];
             }
         }
-        
+
         double M_factor, D_factor, seed_factor, r_factor;
         for(size_t i = 0; i < n; i++) {
             M_factor = this->Mvv[i];
@@ -139,7 +139,15 @@ void MAD_sketch::run_sim(size_t iters) {
     }
 }
 
-//@TODO copy back to sketches
-std::vector< sketch::seq::count_min_sketch<double> > *get_labels() {
-    return Ys;    
+std::vector< *sketch::seq::count_min_sketch<double> > *get_labels(
+        std::vector< sketch::seq::count_min_sketch<double> > *seeds) {
+    
+    size_t sketch_size = this->d * this->w;
+    std::vector< *sketch::seq::count_min_sketch<double> > *res = 
+        new std::vector< *sketch::seq::count_min_sketch<double> >(this->n);
+
+    for(size_t i = 0; i < this->n; i++)
+        (*res)[i] = new sketch::seq::count_min_sketch<double>(seeds->at(i));
+   
+    return res; 
 }

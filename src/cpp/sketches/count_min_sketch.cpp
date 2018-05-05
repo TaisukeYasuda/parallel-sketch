@@ -81,8 +81,13 @@ size_t count_min_sketch<T>::get_w() {
 }
 
 template <typename T>
-size_t count_min_sketch<T>::get_CM() {
+size_t *count_min_sketch<T>::get_CM() {
     return this->CM;
+}
+
+template <typename T>
+size_t *count_min_sketch<T>::get_hashes() {
+    return this->h;
 }
 
 template <typename T>
@@ -98,6 +103,24 @@ void count_min_sketch<T>::add_vec(std::vector<T> *v) {
     }
 }
 
+template <typename T>
+void count_min_sketch<T>::count_min_sketch(count_min_sketch<T> *CMS) {
+
+    this->w = CMS->get_w();
+    this->d = CMS->get_d();
+    this->CM = new T[d*w];
+    this->h  = new size_t[d];
+
+    memcpy(this->CM, CMS->get_CM(), this->d * this->w * sizeof(T));
+    memcpy(this->h, CMS->get_hashes(), d);
+
+}
+
+template <typename T>
+void count_min_sketch<T>::~count_min_sketch() {
+    delete this->h;
+    delete this->CM;
+}
 /*
 
 template <typename T>
