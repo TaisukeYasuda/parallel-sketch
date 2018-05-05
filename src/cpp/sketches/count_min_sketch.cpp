@@ -18,15 +18,15 @@ namespace sketch {
 namespace seq {
 
 template <typename T>
-count_min_sketch<T>::count_min_sketch(count_min_sketch<T> *CMS) {
+count_min_sketch<T>::count_min_sketch(const count_min_sketch<T>& other) {
 
-    this->w = CMS->get_w();
-    this->d = CMS->get_d();
+    this->w = other.get_w();
+    this->d = other.get_d();
     this->CM = new T[d*w];
     this->h  = new size_t[d];
 
-    memcpy(this->CM, CMS->get_CM(), this->d * this->w * sizeof(T));
-    memcpy(this->h, CMS->get_hashes(), d);
+    memcpy(this->CM, other.get_CM(), this->d * this->w * sizeof(T));
+    memcpy(this->h, other.get_hashes(), d);
 
 }
 
@@ -84,22 +84,22 @@ void count_min_sketch<T>::add(size_t j, T x) {
 }
 
 template <typename T>
-size_t count_min_sketch<T>::get_d() {
+size_t count_min_sketch<T>::get_d() const {
     return this->d;
 }
 
 template <typename T>
-size_t count_min_sketch<T>::get_w() {
+size_t count_min_sketch<T>::get_w() const {
     return this->w;
 }
 
 template <typename T>
-T *count_min_sketch<T>::get_CM() {
+T *count_min_sketch<T>::get_CM() const {
     return this->CM;
 }
 
 template <typename T>
-size_t *count_min_sketch<T>::get_hashes() {
+size_t *count_min_sketch<T>::get_hashes() const {
     return this->h;
 }
 
@@ -120,6 +120,9 @@ template <typename T>
 count_min_sketch<T>::~count_min_sketch() {
     delete this->h;
     delete this->CM;
+
+    this->h  = nullptr;
+    this->CM = nullptr;
 }
 
 template class count_min_sketch<double>;

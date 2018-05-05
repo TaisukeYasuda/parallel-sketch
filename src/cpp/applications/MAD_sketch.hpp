@@ -21,7 +21,7 @@ class MAD_sketch {
             std::vector< sketch::seq::count_min_sketch<double> > *seeds_,
             sketch::seq::count_min_sketch<double> *r_);
         void run_sim(size_t iterations);
-        std::vector< sketch::seq::count_min_sketch<double>* >* get_labels(size_t *hashes);
+        std::vector< sketch::seq::count_min_sketch<double> >* get_labels(size_t *hashes);
     private:
         size_t n;
         size_t d;

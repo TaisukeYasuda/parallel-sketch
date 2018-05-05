@@ -33,7 +33,6 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
     memcpy(this->p_inj , p_inj_ , n_ * sizeof(double));
     memcpy(this->p_abnd, p_abnd_, n_ * sizeof(double));
 
-
     this->d = d_;
     this->w = w_;
     this->n = n_;
@@ -130,16 +129,15 @@ void MAD_sketch::run_sim(size_t iters) {
     }
 }
 
-std::vector< sketch::seq::count_min_sketch<double>* > *MAD_sketch::get_labels(size_t *hashes) {
+std::vector< sketch::seq::count_min_sketch<double> > *MAD_sketch::get_labels(size_t *hashes) {
     
     size_t sketch_size = this->d * this->w;
-    std::vector< sketch::seq::count_min_sketch<double>* > *res = 
-        new std::vector< sketch::seq::count_min_sketch<double>* >(this->n);
+    std::vector< sketch::seq::count_min_sketch<double> > *res = 
+        new std::vector< sketch::seq::count_min_sketch<double> >(this->n,
+        sketch::seq::count_min_sketch<double>(this->d, this->w, hashes));
 
-    for(size_t i = 0; i < this->n; i++) {
-        (*res)[i] = new sketch::seq::count_min_sketch<double>(this->d, this->w, hashes);
-        memcpy(res->at(i)->get_CM(), this->Ys, sketch_size * sizeof(double));
-    }
+    for(size_t i = 0; i < this->n; i++)
+        memcpy(res->at(i).get_CM(), this->Ys, sketch_size * sizeof(double));
    
     return res; 
 }

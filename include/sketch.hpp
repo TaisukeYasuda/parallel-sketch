@@ -16,20 +16,20 @@ class count_min_sketch {
     public:
         count_min_sketch(size_t d, size_t w);
         count_min_sketch(size_t d, size_t w, size_t *hashes);
-        count_min_sketch(count_min_sketch<T> *CMS);
+        count_min_sketch(const count_min_sketch<T>& other);
         T get(size_t j);
         void add(size_t j, T x);
         void add_vec(std::vector<T> *v);
-        size_t get_d();
-        size_t get_w();
-        T *get_CM();
-        size_t *get_hashes();
+        size_t get_d() const;
+        size_t get_w() const;
+        T *get_CM() const;
+        size_t *get_hashes() const;
         ~count_min_sketch();
     private:
         size_t d;
         size_t w;
-        size_t *h;
-        T *CM;
+        size_t *h = nullptr;
+        T *CM     = nullptr;
 };
 
 /* Sketch interface

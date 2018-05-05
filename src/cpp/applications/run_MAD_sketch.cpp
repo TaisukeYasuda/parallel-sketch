@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
    
     std::cout << "Ran Sim!" << std::endl;
 
-    std::vector< sketch::seq::count_min_sketch<double>* > *res = SSL.get_labels(&hashes);
+    std::vector< sketch::seq::count_min_sketch<double> > *res = SSL.get_labels(&hashes);
     
     std::ifstream eval_file(argv[EVAL]);
     std::ofstream res_file("result.txt");
@@ -75,17 +75,19 @@ int main(int argc, char *argv[]) {
     for(size_t i = 0; i < eval_nodes; i++) {
         eval_file >> u;
         for(size_t j = 0; j < num_labels; j++) {
-            labels[j].first  = res->at(i)->get(j);
+            labels[j].first  = 1.0;//res->at(i).get(j);
             labels[j].second = j;
         }
 
         std::sort(labels.begin(), labels.end());
-        res_file << u <<  '\t';
-        for(size_t j = 0; j < num_labels; j++) {
+        res_file << u << '\t';
+        for(size_t j = 0; j < num_labels; j++)
             res_file << labels[j].second << ' ';
-        }
+        
         res_file << std::endl;
     }
+
+    std::cout << "Output Labels!" << std::endl;
 
     return 0;
 }
