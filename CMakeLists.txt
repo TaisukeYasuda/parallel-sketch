@@ -68,10 +68,10 @@ add_executable(test_subspace_embedding
 )
 
 # compile mad sketch
-# add_executable(run_mad_sketch
-#     src/cpp/applications/run_MAD_sketch.cpp
-#     src/cpp/applications/MAD_sketch.cpp)
-# target_link_libraries(run_mad_sketch sketch)
+ add_executable(run_mad_sketch
+     src/cpp/applications/run_MAD_sketch.cpp
+     src/cpp/applications/MAD_sketch.cpp)
+ target_link_libraries(run_mad_sketch sketch)
 
 # copy test cases to binary directory
 file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

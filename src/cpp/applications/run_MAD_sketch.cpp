@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <utility>
+#include <iostream>
 
 #define GRAPH 1
 #define SEEDS 2
@@ -16,13 +17,14 @@ int main(int argc, char *argv[]) {
     graph_file >> nodes >> edges;
 
     std::vector< std::pair< std::pair<size_t, size_t>, double> > edge_list(edges);
-
     size_t u, v, d, l, s_size, hashes, num_labels;
     for(size_t i = 0; i < edges; i++) {
         graph_file >> edge_list[i].first.first;
         graph_file >> edge_list[i].first.second;
         graph_file >> edge_list[i].second;
     }
+    
+    std::cout << "Read Graph!" << std::endl;
 
     s_size = 23;
     d = 1;
@@ -39,6 +41,8 @@ int main(int argc, char *argv[]) {
         seeds[u].add(l, 1.0);
     }
 
+    std::cout << "Read Seeds!" << std::endl;
+
     double *p_inj  = new double[nodes];
     double *p_cont = new double[nodes];
     double *p_abnd = new double[nodes];
@@ -53,9 +57,13 @@ int main(int argc, char *argv[]) {
 
     MAD_sketch SSL(nodes, d, s_size, 0.5, 0.5, 0.5, p_inj, p_cont, p_abnd,
         &edge_list, &seeds, &r);
-  
+ 
+    std::cout << "Made MAD Sketch!" << std::endl;
+
     SSL.run_sim(2);
-    
+   
+    std::cout << "Ran Sim!" << std::endl;
+
     std::vector< sketch::seq::count_min_sketch<double>* > *res = SSL.get_labels(&hashes);
     
     std::ifstream eval_file(argv[EVAL]);
@@ -72,11 +80,13 @@ int main(int argc, char *argv[]) {
         }
 
         std::sort(labels.begin(), labels.end());
-        res_file << u <<  ' ';
+        res_file << u <<  '\t';
         for(size_t j = 0; j < num_labels; j++) {
             res_file << labels[j].second << ' ';
         }
         res_file << std::endl;
     }
+
+    return 0;
 }
 
