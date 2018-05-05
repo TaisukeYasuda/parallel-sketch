@@ -25,8 +25,9 @@ count_sketch<I, T>::count_sketch(size_t p, size_t n, unsigned int s) {
     std::uniform_int_distribution<int> rand_sign(0, 1);
     std::vector<Eigen::Triplet<double> > entries;
     for (unsigned int j = 0; j < n; j++) {
-        unsigned int i = rand_row(mt);
-        entries.push_back(Eigen::Triplet<double>(i, j, rand_sign(mt) * 2 - 1));
+        int i = rand_row(mt);
+        int sign = rand_sign(mt) * 2 - 1;
+        entries.push_back(Eigen::Triplet<double>(i, j, sign));
     }
     S->setFromTriplets(entries.begin(), entries.end());
 }

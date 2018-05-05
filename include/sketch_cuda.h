@@ -38,7 +38,7 @@ class count_min_sketch {
 template <typename I, typename T>
 class sketch_interface {
     public:
-        virtual void sketch(I *A, T *SA, size_t n, size_t d) = 0;
+        virtual void sketch(I *A_device, T *SA_device, size_t n, size_t d) = 0;
 };
 
 /* Exceptions */
@@ -73,43 +73,42 @@ class oblivious_sketch : public sketch_interface<I, T> {
  * sketches typically perform better than oblivious sketches since it has extra
  * information that it can use to construct the sketched matrix SA.
  */
-/*
 template <typename I, typename T>
 class adaptive_sketch : public sketch_interface<I, T> {
     public:
         adaptive_sketch();
         adaptive_sketch(size_t p, size_t n);
 };
-*/
 
 /*
  * Oblivious sketch instantiations
  */
-/*
 template <typename I, typename T>
 class gaussian_sketch : public oblivious_sketch<I, T> {
     public:
         gaussian_sketch(size_t p, size_t n);
         gaussian_sketch(size_t p, size_t n, unsigned int seed);
-        void sketch(I *A, T *SA);
+        void sketch(I *A_device, T *SA_device, size_t n, size_t d);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
         const static size_t min_n = 10; // minimum rows required to sketch
     private:
         unsigned int seed;
-        Eigen::MatrixXd *S;
+        double *S;
+        double *S_device; // device
+        size_t _p;
 };
-*/
 
 template <typename I, typename T>
 class count_sketch : public oblivious_sketch<I, T>  {
     public:
         count_sketch(size_t p, size_t n);
         count_sketch(size_t p, size_t n, unsigned int seed);
-        void sketch(I *A, T *SA, size_t n, size_t d);
+        void sketch(I *A_device, T *SA_device, size_t n, size_t d);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
         unsigned int seed;
-        int *S;
+        int *S; // host
+        int *S_device; // device
         size_t _n;
 };
 
