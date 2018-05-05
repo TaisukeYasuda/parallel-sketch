@@ -31,7 +31,8 @@ inline size_t *make_hashes(size_t w) {
 MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double mu_3_,
     double *p_inj_, double *p_cont_, double *p_abnd_,
     std::vector< std::pair< std::pair<size_t, size_t>, size_t> > *edge_list_,
-    std::vector< sketch::seq::count_min_sketch<double> > *seeds_); {
+    std::vector< sketch::seq::count_min_sketch<double> > *seeds_,
+    std::vector< sketch::seq::count_min_sketch<double> > *rs_); {
 
     std::sort(edge_list_->begin(), edge_list_->end());
 
@@ -40,10 +41,14 @@ MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double m
     this->mu_1 = mu_1_;
     this->mu_2 = mu_2_;
     this->mu_3 = mu_3_;
+
+    this->p_inj  = new double[n_];
+    this->p_abnd = new double[n_];
     
-    this->p_inj  = p_inj_;
-    this->p_abnd = p_abnd_;
-    
+    memcpy(this->p_inj , p_inj_ , n_ * sizeof(double));
+    memcpy(this->p_abnd, p_abnd_, n_ * sizeof(double));
+
+
     this->d = d_;
     this->w = w_;
     this->n = n_;
@@ -89,11 +94,12 @@ MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double m
     this->rs    = new double[seed_size];
 
     memset(this->rs, 0, seed_size * sizeof(double));
-    for(size_t i = 0; i < n; i++){
-        this->Mvv[i] = 1.0 / ((this->Mvv->at(i) * mu_2) + p_inj->at(i) * mu_1 + mu_3);
+    for(size_t i = 0; i < n_; i++){
+        this->Mvv[i] = 1.0 / ((this->Mvv->at(i) * mu_2) + p_inj_->at(i) * mu_1_ + mu_3_);
     
-        memcpy(this->Ys,    seeds->at(i).get_CM(), sketch_size * sizeof(double));
-        memcpy(this->seeds, seeds->at(i).get_CM(), sketch_size * sizeof(double));
+        memcpy(this->Ys,    seeds_->at(i).get_CM(), sketch_size * sizeof(double));
+        memcpy(this->seeds, seeds_->at(i).get_CM(), sketch_size * sizeof(double));
+        memcpy(this->rs, rs_->at(i).get_CM(), sketch_size * sizeof(double));
     }
 }
 
@@ -139,15 +145,16 @@ void MAD_sketch::run_sim(size_t iters) {
     }
 }
 
-std::vector< *sketch::seq::count_min_sketch<double> > *get_labels(
-        std::vector< sketch::seq::count_min_sketch<double> > *seeds) {
+std::vector< *sketch::seq::count_min_sketch<double> > *get_labels(double *hashes) {
     
     size_t sketch_size = this->d * this->w;
     std::vector< *sketch::seq::count_min_sketch<double> > *res = 
         new std::vector< *sketch::seq::count_min_sketch<double> >(this->n);
 
-    for(size_t i = 0; i < this->n; i++)
-        (*res)[i] = new sketch::seq::count_min_sketch<double>(seeds->at(i));
+    for(size_t i = 0; i < this->n; i++) {
+        (*res)[i] = new sketch::seq::count_min_sketch<double>(this->d, this->w, hashes);
+        memcpy(res->at(i)->get_CM(), this->Ys, sketch_size * sizeof(double));
+    }
    
     return res; 
 }

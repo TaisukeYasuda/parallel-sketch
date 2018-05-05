@@ -25,7 +25,7 @@ count_min_sketch<T>::count_min_sketch(size_t d, size_t w, size_t *hashes) {
     this->h  = new size_t[d];
 
     memset(this->CM, 0, d * w * sizeof(T));
-    memcpy(this->h, hashes, d);
+    memcpy(this->h, hashes, d * sizeof(size_t));
 }
 
 template <typename T>
