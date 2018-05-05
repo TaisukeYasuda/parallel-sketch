@@ -15,18 +15,16 @@ template <typename T>
 class count_min_sketch {
     public:
         count_min_sketch(size_t d, size_t w);
-        count_min_sketch(size_t d, size_t w, std::vector<size_t> *hashes)
+        count_min_sketch(size_t d, size_t w, size_t *hashes)
         T get(size_t j);
         void add(size_t j, T x);
-        void add_vec(std::vector<T> *v);
-        void add_const(T d);
-        void mult_const(T d);
-        void add_sketch(count_min_sketch<T> *CMS);
-        void saxpy_add(T d, count_min_sketch<T> *CMS);
-        void reset_sketch();
+        void add_vec(std::vector<T> *v)
+        size_t get_d();
+        size_t get_w();
+        T *get_CM();
     private:
         size_t d;
-        size_t w
+        size_t w;
         size_t *h;
         T *CM;
 };
