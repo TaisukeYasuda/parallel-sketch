@@ -48,13 +48,35 @@ __global__ void initIdentityGPU(double *R, int d) {
     }
 }
 
+void gpu_cublas_trans(cublasHandle_t handle, double *A, double *At, size_t n, size_t d) {
+    const double alpha_t = 1;
+    const double beta_t = 0;
+    cublasDgeam(
+        handle,        // cublas library context
+        CUBLAS_OP_T,   // transpose it
+        CUBLAS_OP_T,
+        n,             // number of rows of A
+        d,             // number of columns of A
+        &alpha_t,      // scale A
+        A,             // matrix to transpose
+        d,             // leading dimension of A
+        &beta_t,       // scale B by 0, doesn't have to be valid input
+        NULL,          // B
+        d,             // leading dimension of B
+        At,            // result of transposing A
+        n              // leading dimension of At
+    );
+}
+
 template <typename I, typename T>
 void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
     cublasHandle_t handle;
+    cudaError_t cuda_status = cudaSuccess;
     if (!this->sketched) {
         // find a 1+1/36 subspace embedding SA_count
         size_t p_count = sketch::par::count_sketch<I, T>::eps_approx_rows(n, d, 1.0/36);
-        double *SA_count;
+        double *SA_count,
+               *SA_count_col; // SA_count in column major format
         if (p_count < n) {
             size_t SA_count_size = sizeof(double) * p_count * d;
             cudaMalloc(&SA_count, SA_count_size); // allocate space on device
@@ -64,10 +86,10 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
             SA_count = *A;
             p_count = n;
         }
+        cudaMalloc(&SA_count_col, sizeof(double) * p_count * d); // allocate space on device
 
         // find a QR decomposition of SA_count
         cusolverStatus_t cusolver_status = CUSOLVER_STATUS_SUCCESS;
-        cudaError_t cuda_status = cudaSuccess;
         cusolverDnHandle_t cusolverH;
         cusolver_status = cusolverDnCreate(&cusolverH); // create handle
         assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
@@ -79,13 +101,15 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
         int *dev_info; // info in gpu
         cuda_status =  cudaMalloc((void**)&dev_info, sizeof(int));
         assert(cudaSuccess == cuda_status);
+        cublasCreate(&handle);
+        gpu_cublas_trans(handle, SA_count, SA_count_col, p_count, d);
         cusolver_status = cusolverDnDgeqrf_bufferSize( // query for space
-            cusolverH, // cuSolverDN library context
-            p_count,   // number of rows of SA_count
-            d,         // number of columns of SA_count
-            SA_count,  // matrix to decompose
-            d,         // leading dimension
-            &lwork     // working space size
+            cusolverH,      // cuSolverDN library context
+            p_count,        // number of rows of SA_count
+            d,              // number of columns of SA_count
+            SA_count_col,   // matrix to decompose
+            p_count,        // leading dimension
+            &lwork          // working space size
         );
         assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
         cuda_status = cudaMalloc((void**)&d_work, sizeof(double) * lwork); // allocate working space
@@ -94,72 +118,82 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
         assert(cudaSuccess == cuda_status);
         // compute Q
         cusolver_status = cusolverDnDgeqrf(
-            cusolverH, // cuSolverDN library context
-            p_count,   // number of rows of SA_count
-            d,         // number of columns of SA_count
-            SA_count,  // matrix to decompose
-            d,         // leading dimension,
-            d_tau,     // tau
-            d_work,    // working space
-            lwork,     // working space size
-            dev_info   // info
+            cusolverH,       // cuSolverDN library context
+            p_count,         // number of rows of SA_count
+            d,               // number of columns of SA_count
+            SA_count_col,    // matrix to decompose
+            p_count,         // leading dimension,
+            d_tau,           // tau
+            d_work,          // working space
+            lwork,           // working space size
+            dev_info         // info
         );
         cuda_status = cudaDeviceSynchronize();
-        assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
         assert(cudaSuccess == cuda_status);
-        // compute R = Q^T * SA_count
+        assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
+        // compute R = Q^T * SA_count (R^T = SA_count^T * Q)
         double *R;
         cuda_status = cudaMalloc((void**)&R, sizeof(double) * p_count * d); // allocate R
         assert(cudaSuccess == cuda_status);
         cusolver_status = cusolverDnDormqr(
             cusolverH,         // cuSolverDN library context
-            CUBLAS_SIDE_LEFT,  // multiply Q^T on left
-            CUBLAS_OP_T,       // data is in row major so transpose
+            CUBLAS_SIDE_RIGHT, // multiply Q on right
+            CUBLAS_OP_N,       //
             p_count,           // number of rows of SA_count
             d,                 // number of columns of SA_count
             tau_size,          // number of elementary reflections
-            SA_count,          // matrix to decompose
+            SA_count,          // matrix to decompose TRANSPOSED in column major
             d,                 // leading dimension of SA_count
             d_tau,             // Q
-            R,                 // R
+            R,                 // R^T in column major, or R in row major
             d,                 // leading dimension of R
             d_work,            // working space
             lwork,             // working space size
             dev_info           // info
         );
-        cudaFree(d_work); // done with d_work
+        cuda_status = cudaDeviceSynchronize();
+        assert(cudaSuccess == cuda_status);
+        if (d_work) cudaFree(d_work); // done with d_work
+        assert(cudaSuccess == cuda_status);
         // invert R (upper d * d submatrix of R to be precise)
-        double *R_inv_trans;
-        cuda_status = cudaMalloc((void**)&R_inv_trans, sizeof(double) * d * d); // allocate R inverse
+        double *R_inv;
+        cuda_status = cudaMalloc((void**)&R_inv, sizeof(double) * d * d); // allocate R inverse
         assert(cudaSuccess == cuda_status);
         dim3 blockDim(16, 16);
         dim3 gridDim(
             (d + blockDim.x - 1) / blockDim.x,
             (d + blockDim.y - 1) / blockDim.y);
-        initIdentityGPU<<<gridDim, blockDim>>>(R_inv_trans, d); // set R to identity
+        initIdentityGPU<<<gridDim, blockDim>>>(R_inv, d); // set R to identity
         // set up LU decomposition call
         cusolver_status = cusolverDnDgetrf_bufferSize(
             cusolverH,    // cuSolverDN library context
             d,            // number of rows of R
             d,            // number of columns of R
-            R,            // R
+            R,            // R in row major
             d,            // leading dimension of R
             &lwork        // working space size
         );
         assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
-        cuda_status = cudaMalloc((void**)&d_work, sizeof(double) * lwork);
+        cuda_status = cudaDeviceSynchronize();
+        assert(cudaSuccess == cuda_status);
+        cuda_status = cudaMalloc((void**)&d_work, sizeof(double) * lwork); // allocate working space
         assert(cudaSuccess == cuda_status);
         // compute LU decomposition
+        int *devIpiv;
+        cuda_status = cudaMalloc((void**)&devIpiv, sizeof(int) * d); // allocate pivots
+        assert(cudaSuccess == cuda_status);
         cusolver_status = cusolverDnDgetrf(
             cusolverH,    // cuSolverDN library context
             d,            // number of rows of R
             d,            // number of columns of R
-            R,            // R
+            R,            // R in row major
             d,            // leading dimension of R
             d_work,       // working space
-            NULL,         // no pivot
+            devIpiv,      // pivots
             dev_info      // info
         );
+        cuda_status = cudaDeviceSynchronize();
+        assert(cudaSuccess == cuda_status);
         assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
         // invert and transpose R
         cusolver_status = cusolverDnDgetrs(
@@ -167,13 +201,15 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
             CUBLAS_OP_N,  // treat it as transpose (col major), since transpose commutes with inverse
             d,            // number of rows and columns of R
             d,            // number of right hand sides
-            R,            // R
+            R,            // R in row major
             d,            // leading dimension of R
-            NULL,         // no pivot
-            R_inv_trans,  // identity matrix, to be replaced by R inverse transpose
+            devIpiv,      // pivots
+            R_inv,        // identity matrix, to be replaced by R^{-1} in row major
             d,            // leading dimension of I
             dev_info      // info
         );
+        cuda_status = cudaDeviceSynchronize();
+        assert(cudaSuccess == cuda_status);
         assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
         if (cusolverH) cusolverDnDestroy(cusolverH);
         // compute RG for a gaussian sketch G
@@ -183,35 +219,46 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
         } catch (const sketch::par::bad_dimension& e) {
             p_gauss = d;
         }
-        double* RG_trans;
-        double* RG;
-        if (p_gauss < d) {
-            sketch::par::gaussian_sketch<I, T> G(p_gauss, d);
-            cudaMalloc(&RG_trans, sizeof(double) * p_gauss * d);
-            G.sketch(&R_inv_trans, &RG_trans, d, d);
-        } else {
-            RG_trans = R_inv_trans;
-        }
-        cublasCreate(&handle);
-        // transpose RG_trans
-        cudaMalloc(&RG, sizeof(double) * p_gauss * d);
         const double alpha_t = 1;
         const double beta_t = 0;
-        cublasDgeam(
-            handle,        // cublas library context
-            CUBLAS_OP_T,   // transpose it
-            CUBLAS_OP_T,
-            p_gauss,       // number of rows of RG_trans
-            d,             // number of columns of RG_trans
-            &alpha_t,      // scale A
-            RG_trans,      // matrix to transpose
-            p_gauss,       // leading dimension of p_gauss
-            &beta_t,       // scale B by 0, doesn't have to be valid input
-            NULL,          // B
-            d,             // leading dimension of B
-            RG,            // result of transposing RG_trans
-            d              // leading dimension of RG
-        );
+        double* RG;
+        if (p_gauss < d) {
+            /* allocate sketch on host */
+            size_t G_size = sizeof(double) * d * p_gauss;
+            double *G = (double*)malloc(G_size);
+            double *G_device;
+            /* sample gaussians */
+            std::mt19937 mt_gauss(this->seed);
+            double stddev = sqrt(1.0 / p_gauss);
+            std::normal_distribution<> g(0, stddev);
+            for (unsigned int i = 0; i < d; i++)
+                for (unsigned int j = 0; j < p_gauss; j++)
+                    G[i*n + j] = g(mt_gauss);
+            /* allocate sketch on device and send */
+            cudaMalloc(&RG, G_size);
+            cudaMalloc(&G_device, G_size);
+            cudaMemcpy(G_device, G, G_size, cudaMemcpyHostToDevice);
+            cublasDgemm(
+                handle,        // cublas library context
+                CUBLAS_OP_N,   // transposing is handled by switching order
+                CUBLAS_OP_N,   //
+                p_gauss,       // last outer dimension
+                d,             // first outer dimension
+                d,             // inner dimension
+                &alpha_t,      // scale product
+                G_device,      // second factor
+                p_gauss,       // leading dimension of G
+                R,             // first factor
+                d,             // leading dimension of A
+                &beta_t,       //
+                RG,            // result
+                p_gauss        // leading dimension of RG
+            );
+            cuda_status = cudaDeviceSynchronize();
+        } else {
+            RG = R_inv;
+        }
+        cublasCreate(&handle);
         // compute ARG
         double* ARG;
         cudaMalloc(&ARG, sizeof(double) * n * p_gauss);
@@ -223,7 +270,7 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
             n,             // first outer dimension
             d,             // inner dimension
             &alpha_t,      // scale product
-            RG ,           // second factor
+            RG,            // second factor
             p_gauss,       // leading dimension of RG_trans
             *A,            // first factor
             d,             // leading dimension of A
@@ -231,6 +278,8 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
             ARG,           // result
             p_gauss        // leading dimension of ARG
         );
+        cuda_status = cudaDeviceSynchronize();
+        assert(cudaSuccess == cuda_status);
 
         // scaled row norms of ARG are estimates of leverage scores
         double beta = 4.0 / 7.0;
@@ -277,7 +326,9 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
             d             // leading dimension of result row
         );
     }
-    cublasDestroy(handle);
+    cuda_status = cudaDeviceSynchronize();
+    assert(cudaSuccess == cuda_status);
+    if (handle) cublasDestroy(handle);
 }
 
 template <typename I, typename T>
