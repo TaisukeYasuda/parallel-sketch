@@ -18,6 +18,19 @@ namespace sketch {
 namespace seq {
 
 template <typename T>
+count_min_sketch<T>::count_min_sketch(const count_min_sketch<T>& other) {
+
+    this->w = other.get_w();
+    this->d = other.get_d();
+    this->CM = new T[d*w];
+    this->h  = new size_t[d];
+
+    memcpy(this->CM, other.get_CM(), this->d * this->w * sizeof(T));
+    memcpy(this->h, other.get_hashes(), d);
+
+}
+
+template <typename T>
 count_min_sketch<T>::count_min_sketch(size_t d, size_t w, size_t *hashes) {
     this->w = w;
     this->d = d;
@@ -25,7 +38,7 @@ count_min_sketch<T>::count_min_sketch(size_t d, size_t w, size_t *hashes) {
     this->h  = new size_t[d];
 
     memset(this->CM, 0, d * w * sizeof(T));
-    memcpy(this->h, hashes, d);
+    memcpy(this->h, hashes, d * sizeof(size_t));
 }
 
 template <typename T>
@@ -71,22 +84,22 @@ void count_min_sketch<T>::add(size_t j, T x) {
 }
 
 template <typename T>
-size_t count_min_sketch<T>::get_d() {
+size_t count_min_sketch<T>::get_d() const {
     return this->d;
 }
 
 template <typename T>
-size_t count_min_sketch<T>::get_w() {
+size_t count_min_sketch<T>::get_w() const {
     return this->w;
 }
 
 template <typename T>
-size_t *count_min_sketch<T>::get_CM() {
+T *count_min_sketch<T>::get_CM() const {
     return this->CM;
 }
 
 template <typename T>
-size_t *count_min_sketch<T>::get_hashes() {
+size_t *count_min_sketch<T>::get_hashes() const {
     return this->h;
 }
 
@@ -97,30 +110,20 @@ void count_min_sketch<T>::add_vec(std::vector<T> *v) {
     for(size_t j = 0; j < v->size(); j++){
         temp = v->at(j);
         for(size_t i = 0; i < this->d; i++) {
-            t = (j ^ (this->h)[i] % this->w;
+            t = (j ^ this->h[i]) % this->w;
             (this->CM)[(i * this->w) + t] += temp;
         }
     }
 }
 
 template <typename T>
-void count_min_sketch<T>::count_min_sketch(count_min_sketch<T> *CMS) {
-
-    this->w = CMS->get_w();
-    this->d = CMS->get_d();
-    this->CM = new T[d*w];
-    this->h  = new size_t[d];
-
-    memcpy(this->CM, CMS->get_CM(), this->d * this->w * sizeof(T));
-    memcpy(this->h, CMS->get_hashes(), d);
-
-}
-
-template <typename T>
-void count_min_sketch<T>::~count_min_sketch() {
+count_min_sketch<T>::~count_min_sketch() {
     delete this->h;
     delete this->CM;
 }
+
+template class count_min_sketch<double>;
+
 /*
 
 template <typename T>
