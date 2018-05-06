@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(parallel-sketch)
 find_package(CUDA QUIET REQUIRED)
+find_package(OpenMP QUIET REQUIRED)
 
 # C++11
 add_compile_options(-std=c++11)
@@ -15,6 +16,7 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CUDA_HOST_COMPILER g++)
 list(APPEND CUDA_NVCC_FLAGS "-O3 --gpu-architecture compute_61 -std=c++11")
+list(APPEND CUDA_NVCC_FLAGS "-Xcompiler -fopenmp")
 
 # set cuda source files
 set(CUDA_SOURCES
@@ -22,6 +24,7 @@ set(CUDA_SOURCES
     src/cuda/sketches/adaptive_sketch.cu
     src/cuda/sketches/count_sketch_basic.cu
     src/cuda/sketches/gaussian_sketch_basic.cu
+    src/cuda/sketches/leverage_score_sketch_basic.cu
     src/util.cpp
 )
 
@@ -32,6 +35,8 @@ cuda_add_library(sketch_cuda ${CUDA_SOURCES})
 cuda_add_executable(test_sketch_cuda test/test_sketch_cuda.cu)
 target_link_libraries(test_sketch_cuda sketch_cuda)
 cuda_add_cublas_to_target(test_sketch_cuda)
+target_link_libraries(test_sketch_cuda ${CUDA_cusolver_LIBRARY})
+target_link_libraries(test_sketch_cuda gomp)
 
 ################################################################################
 #                                    C++                                       #
@@ -47,7 +52,7 @@ set(CXX_SOURCES
     src/cpp/sketches/gaussian_sketch.cpp
     src/cpp/sketches/count_sketch.cpp
     src/cpp/sketches/leverage_score_sketch.cpp
-    src/cpp/sketches/count_min_sketch.cpp
+#     src/cpp/sketches/count_min_sketch.cpp
     src/util.cpp
 )
 # make libraries

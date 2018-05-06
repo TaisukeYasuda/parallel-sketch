@@ -115,24 +115,22 @@ class count_sketch : public oblivious_sketch<I, T>  {
 /*
  * Adaptive sketch instantiations
  */
-/*
 template <typename I, typename T>
 class leverage_score_sketch : public adaptive_sketch<I, T> {
     public:
         leverage_score_sketch(size_t p, size_t n);
         leverage_score_sketch(size_t p, size_t n, unsigned int seed);
-        void sketch(I *A, T *SA);
+        void sketch(I *A, T *SA, size_t n, size_t d);
         static size_t eps_approx_rows(size_t n, size_t d, double eps);
     private:
         bool sketched;
         unsigned int seed;
-        Eigen::SparseMatrix<double> *Omega;
-        Eigen::SparseMatrix<double> *D;
+        int *Omega;
+        double *D;
         size_t _n;
         size_t _p;
         double _eps;
 };
-*/
 
 }
 
