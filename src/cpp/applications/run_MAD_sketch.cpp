@@ -5,10 +5,14 @@
 #include <string>
 #include <utility>
 #include <iostream>
+#include <string>
 
 #define GRAPH 1
 #define SEEDS 2
 #define EVAL  3
+#define ITERS 4
+#define D     5
+#define W     6
 
 int main(int argc, char *argv[]) {
     std::ios_base::sync_with_stdio(false);
@@ -20,24 +24,32 @@ int main(int argc, char *argv[]) {
     graph_file >> nodes >> edges;
 
     std::vector< std::pair< std::pair<size_t, size_t>, double> > edge_list(edges);
-    size_t u, v, d, l, s_size, hashes, num_labels;
+    size_t u, v, w, d, l, s_size, num_labels, temp;
     for(size_t i = 0; i < edges; i++) {
-        graph_file >> edge_list[i].first.first;
-        graph_file >> edge_list[i].first.second;
-        graph_file >> edge_list[i].second;
+        graph_file >> u >> v >> w;
+       
+        if(u > v) {
+            temp = v;
+            v = u;
+            u = temp;
+        }
+
+        edge_list[i].first.first = u;
+        edge_list[i].first.second = v;
+        edge_list[i].second = w;
     }
     
     std::cout << "Read Graph!" << std::endl;
 
-    s_size = 23;
-    d = 1;
-    hashes = 0;
-
-    std::vector< sketch::seq::count_min_sketch<double> > seeds(nodes,
-        sketch::seq::count_min_sketch<double> (d, s_size, &hashes));
-
     std::ifstream seed_file(argv[SEEDS]);
     seed_file >> num_seeds >> num_labels;
+
+    s_size = std::stoi(argv[W]);
+    d = std::stoi(argv[D]);
+    size_t hashes[1] = {0};
+
+    std::vector< sketch::seq::count_min_sketch<double> > seeds(nodes,
+        sketch::seq::count_min_sketch<double> (d, s_size, hashes));
 
     for(size_t i = 0; i < num_seeds; i++) {
         seed_file >> u >> l;
@@ -50,7 +62,7 @@ int main(int argc, char *argv[]) {
     double *p_cont = new double[nodes];
     double *p_abnd = new double[nodes];
 
-    sketch::seq::count_min_sketch<double> r(d, s_size, &hashes);
+    sketch::seq::count_min_sketch<double> r(d, s_size, hashes);
 
     for(size_t i = 0; i < nodes; i++) {
         p_inj[i]  = 3.0;
@@ -63,11 +75,11 @@ int main(int argc, char *argv[]) {
  
     std::cout << "Made MAD Sketch!" << std::endl;
 
-    SSL.run_sim(2);
+    SSL.run_sim(std::stoi(argv[ITERS]));
    
     std::cout << "Ran Sim!" << std::endl;
 
-    std::vector< sketch::seq::count_min_sketch<double> > *res = SSL.get_labels(&hashes);
+    std::vector< sketch::seq::count_min_sketch<double> > *res = SSL.get_labels(hashes);
     
     std::ifstream eval_file(argv[EVAL]);
     std::ofstream res_file("result.txt");
