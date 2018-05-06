@@ -1,6 +1,6 @@
 /*
  * MAD Sketch
- * 
+ *
  * Implementation of MAD sketch
  *
  */
@@ -11,6 +11,7 @@
 #include <vector>
 #include <cstddef>
 #include <random>
+#include <omp.h>
 
 #include<iostream>
 
@@ -30,7 +31,7 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
 
     this->p_inj  = new double[n_];
     this->p_abnd = new double[n_];
-    
+
     memcpy(this->p_inj , p_inj_ , n_ * sizeof(double));
     memcpy(this->p_abnd, p_abnd_, n_ * sizeof(double));
 
@@ -48,7 +49,8 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
 
     size_t u, v, weight, idx;
     double u_val, v_val;
-    
+
+#pragma omp parallel for schedule(auto)
     for(size_t i = 0; i < this->num_edges; i++) {
         //Initialize graph
         u = edge_list_->at(i).first.first;
@@ -59,11 +61,11 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
 
         this->edges[idx]   = u;
         this->edges[idx+1] = v;
-        
+
         u_val = p_cont_[u] * weight;
         v_val = p_cont_[v] * weight;
 
-        this->edge_factors[i] = u_val + v_val;       
+        this->edge_factors[i] = u_val + v_val;
 
         //Modify Mvv
         if(u != v) {
@@ -114,12 +116,12 @@ void MAD_sketch::run_sim(size_t iters) {
     size_t u, v, start_u, start_v, idx;
     for(size_t z = 0; z < iters; z++) {
         memset(temp_D, 0, seed_size * sizeof(double));
-        
+
         for(size_t i = 0; i < this->num_edges; i++) {
             idx = i * 2;
             u = this->edges[idx];
             v = this->edges[idx+1];
-            
+
             double factor = this->edge_factors[i];
 
             start_u = u * sketch_size;
@@ -133,7 +135,7 @@ void MAD_sketch::run_sim(size_t iters) {
         double M_factor, D_factor, seed_factor, r_factor;
         for(size_t i = 0; i < n; i++) {
             M_factor = this->Mvv[i];
-            
+
             seed_factor = this->mu_1 * this->p_inj[i] * M_factor;
             D_factor    = this->mu_2 * M_factor;
             r_factor    = this->mu_3 * this->p_abnd[i] * M_factor;
@@ -151,17 +153,17 @@ void MAD_sketch::run_sim(size_t iters) {
 }
 
 std::vector< sketch::seq::count_min_sketch<double> > *MAD_sketch::get_labels(size_t *hashes) {
-    
+
     size_t sketch_size = this->d * this->w;
-    std::vector< sketch::seq::count_min_sketch<double> > *res = 
+    std::vector< sketch::seq::count_min_sketch<double> > *res =
         new std::vector< sketch::seq::count_min_sketch<double> >(this->n,
         sketch::seq::count_min_sketch<double>(this->d, this->w, hashes));
 
-    
+
     for(size_t i = 0; i < this->n; i++) {
         memcpy(res->at(i).get_CM(), this->Ys + (i * sketch_size),
             sketch_size * sizeof(double));
     }
- 
-    return res; 
+
+    return res;
 }
