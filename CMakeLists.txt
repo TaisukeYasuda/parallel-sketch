@@ -35,6 +35,7 @@ cuda_add_library(sketch_cuda ${CUDA_SOURCES})
 cuda_add_executable(test_sketch_cuda test/test_sketch_cuda.cu)
 target_link_libraries(test_sketch_cuda sketch_cuda)
 cuda_add_cublas_to_target(test_sketch_cuda)
+find_cuda_helper_libs(cusolver)
 target_link_libraries(test_sketch_cuda ${CUDA_cusolver_LIBRARY})
 target_link_libraries(test_sketch_cuda gomp)
 
