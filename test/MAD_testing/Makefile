@@ -1,7 +1,7 @@
-edges_file := ../data/graph_data/processed_freebase_1.graph
-seeds_file := ../data/graph_data/processed_seed1_2.txt
-eval_file := ../data/graph_data/processed_eval1_2.txt
-gold_file := ../data/graph_data/processed_gold1_2.txt
+edges_file := ../data/graph_data/processed_freebase_2.graph
+seeds_file := ../data/graph_data/processed_seed2_10.txt
+eval_file := ../data/graph_data/processed_eval2_10.txt
+gold_file := ../data/graph_data/processed_gold2_10.txt
 
 
 run:
