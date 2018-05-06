@@ -32,5 +32,6 @@ if __name__ == '__main__':
                 rank = i + 1
                 break
         MRR.append(1.0 / rank)
+
     fin.close()
     print("MRR=%f"%(sum(MRR)/len(MRR)))

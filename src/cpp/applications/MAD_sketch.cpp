@@ -10,8 +10,9 @@
 #include <utility>
 #include <vector>
 #include <cstddef>
-#include <algorithm>
 #include <random>
+
+#include<iostream>
 
 MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double mu_3_,
     double *p_inj_, double *p_cont_, double *p_abnd_,
@@ -45,7 +46,7 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
 
     memset(this->Mvv, 0, n_ * sizeof(double));
 
-    size_t u, v, weight;
+    size_t u, v, weight, idx;
     double u_val, v_val;
     
     for(size_t i = 0; i < this->num_edges; i++) {
@@ -54,9 +55,11 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
         v = edge_list_->at(i).first.second;
         weight = edge_list_->at(i).second;
 
-        this->edges[i]   = u;
-        this->edges[i+1] = v;
+        idx = i*2;
 
+        this->edges[idx]   = u;
+        this->edges[idx+1] = v;
+        
         u_val = p_cont_[u] * weight;
         v_val = p_cont_[v] * weight;
 
@@ -79,12 +82,27 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
 
     memcpy(this->r, r_->get_CM(), sketch_size * sizeof(double));
 
+    size_t offset;
     for(size_t i = 0; i < n_; i++){
         this->Mvv[i] = 1.0 / ((this->Mvv[i] * mu_2) + p_inj_[i] * mu_1_ + mu_3_);
-    
-        memcpy(this->Ys,    seeds_->at(i).get_CM(), sketch_size * sizeof(double));
-        memcpy(this->seeds, seeds_->at(i).get_CM(), sketch_size * sizeof(double));
+        offset = i * sketch_size;
+
+        memcpy(this->Ys+offset,    seeds_->at(i).get_CM(), sketch_size * sizeof(double));
+        memcpy(this->seeds+offset, seeds_->at(i).get_CM(), sketch_size * sizeof(double));
+
     }
+
+}
+
+MAD_sketch::~MAD_sketch() {
+    delete this->Ys;
+    delete this->Mvv;
+    delete this->seeds;
+    delete this->r;
+    delete this->p_inj;
+    delete this->p_abnd;
+    delete this->edges;
+    delete this->edge_factors;
 }
 
 void MAD_sketch::run_sim(size_t iters) {
@@ -93,13 +111,14 @@ void MAD_sketch::run_sim(size_t iters) {
 
     double *temp_D = new double[seed_size];
 
-    size_t u, v, start_u, start_v;
+    size_t u, v, start_u, start_v, idx;
     for(size_t z = 0; z < iters; z++) {
         memset(temp_D, 0, seed_size * sizeof(double));
         
         for(size_t i = 0; i < this->num_edges; i++) {
-            u = this->edges[i];
-            v = this->edges[i+1];
+            idx = i * 2;
+            u = this->edges[idx];
+            v = this->edges[idx+1];
             
             double factor = this->edge_factors[i];
 
@@ -119,14 +138,16 @@ void MAD_sketch::run_sim(size_t iters) {
             D_factor    = this->mu_2 * M_factor;
             r_factor    = this->mu_3 * this->p_abnd[i] * M_factor;
 
-            start_v = i * sketch_size;
+            start_u = i * sketch_size;
             for(size_t j = 0; j < sketch_size; j++) {
-                this->Ys[start_v + j] = (seed_factor * this->seeds[start_v + j] +
-                                         D_factor * temp_D[start_v + j] +
+                this->Ys[start_u + j] = (seed_factor * this->seeds[start_u + j] +
+                                         D_factor * temp_D[start_u + j] +
                                          r_factor * this->r[j]);
             }
         }
     }
+
+    delete temp_D;
 }
 
 std::vector< sketch::seq::count_min_sketch<double> > *MAD_sketch::get_labels(size_t *hashes) {
@@ -136,8 +157,11 @@ std::vector< sketch::seq::count_min_sketch<double> > *MAD_sketch::get_labels(siz
         new std::vector< sketch::seq::count_min_sketch<double> >(this->n,
         sketch::seq::count_min_sketch<double>(this->d, this->w, hashes));
 
-    for(size_t i = 0; i < this->n; i++)
-        memcpy(res->at(i).get_CM(), this->Ys, sketch_size * sizeof(double));
-   
+    
+    for(size_t i = 0; i < this->n; i++) {
+        memcpy(res->at(i).get_CM(), this->Ys + (i * sketch_size),
+            sketch_size * sizeof(double));
+    }
+ 
     return res; 
 }

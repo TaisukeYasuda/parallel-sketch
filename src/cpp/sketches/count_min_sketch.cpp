@@ -120,9 +120,6 @@ template <typename T>
 count_min_sketch<T>::~count_min_sketch() {
     delete this->h;
     delete this->CM;
-
-    this->h  = nullptr;
-    this->CM = nullptr;
 }
 
 template class count_min_sketch<double>;

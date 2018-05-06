@@ -15,11 +15,12 @@
 
 class MAD_sketch {
     public:
-       MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double mu_3_,
+        MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double mu_3_,
             double *p_inj_, double *p_cont_, double *p_abnd_,
             std::vector< std::pair< std::pair<size_t, size_t>, double> > *edge_list_,
             std::vector< sketch::seq::count_min_sketch<double> > *seeds_,
             sketch::seq::count_min_sketch<double> *r_);
+        ~MAD_sketch();
         void run_sim(size_t iterations);
         std::vector< sketch::seq::count_min_sketch<double> >* get_labels(size_t *hashes);
     private:

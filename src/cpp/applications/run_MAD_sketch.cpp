@@ -50,9 +50,9 @@ int main(int argc, char *argv[]) {
     sketch::seq::count_min_sketch<double> r(d, s_size, &hashes);
 
     for(size_t i = 0; i < nodes; i++) {
-        p_inj[i]  = 1.0;
-        p_cont[i] = 1.0;
-        p_abnd[i] = 1.0;
+        p_inj[i]  = 3.0;
+        p_cont[i] = 3.0;
+        p_abnd[i] = 3.0;
     }
 
     MAD_sketch SSL(nodes, d, s_size, 0.5, 0.5, 0.5, p_inj, p_cont, p_abnd,
@@ -71,18 +71,20 @@ int main(int argc, char *argv[]) {
     size_t eval_nodes;
     eval_file >> eval_nodes;
 
-    std::vector< std::pair<double, size_t> > labels(eval_nodes);
+    std::vector< std::pair<double, size_t> > labels(num_labels);
     for(size_t i = 0; i < eval_nodes; i++) {
         eval_file >> u;
         for(size_t j = 0; j < num_labels; j++) {
-            labels[j].first  = 1.0;//res->at(i).get(j);
+            labels[j].first  = res->at(u).get(j);
             labels[j].second = j;
         }
 
         std::sort(labels.begin(), labels.end());
         res_file << u << '\t';
-        for(size_t j = 0; j < num_labels; j++)
-            res_file << labels[j].second << ' ';
+        for(int j = num_labels-1; j >= 0; j--){
+            res_file << labels[j].second << '\t';
+
+        }
         
         res_file << std::endl;
     }
