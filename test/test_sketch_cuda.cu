@@ -20,7 +20,7 @@
 #define MAX_ROWS 500
 
 int main(int argc, char *argv[]) {
-    std::cout << "Testing CUDA " << argv[SKETCH_TYPE] << std::endl;
+    std::cout << "Testing sketch CUDA " << argv[SKETCH_TYPE] << std::endl;
 
     std::string test_dir = std::string(argv[INPUT]);
     std::string res_dir = std::string(argv[OUTPUT]);
@@ -49,13 +49,13 @@ int main(int argc, char *argv[]) {
             std::cout << "\tSketch size capped to " << p << std::endl;
         }
         S = new sketch::par::gaussian_sketch<double*, double*>(p, n, SEED);
-    /*} else if (sketch_type.compare("leverage_score_sketch") == 0) {
-        p = sketch::par::leverage_score_sketch<float*, float*>::eps_approx_rows(n, d, eps);
+    } else if (sketch_type.compare("leverage_score_sketch") == 0) {
+        p = sketch::par::leverage_score_sketch<double*, double*>::eps_approx_rows(n, d, eps);
         if (p > MAX_ROWS) {
             p = MAX_ROWS;
             std::cout << "\tSketch size capped to " << p << std::endl;
         }
-        S = new sketch::par::leverage_score_sketch<float*, float*>(p, n, SEED);*/
+        S = new sketch::par::leverage_score_sketch<double*, double*>(p, n, SEED);
     } else {
         std::cerr << "Invalid sketch type." << std::endl;
         exit(1);
@@ -89,7 +89,6 @@ int main(int argc, char *argv[]) {
             outfile << SA[i*d + j] << ",";
         outfile << SA[i*d + d-1] << std::endl;
     }
-    outfile << std::endl;
     outfile.close();
 
     return 0;

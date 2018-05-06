@@ -21,8 +21,6 @@
 int main(int argc, char *argv[]) {
     typedef Eigen::MatrixXd M;
 
-    std::cout << "Testing subspace embedding" << std::endl;
-
     std::string A_dir = std::string(argv[INPUT_A]);
     std::string SA_dir = std::string(argv[INPUT_SA]);
     std::string x_dir = std::string(argv[INPUT_x]);
