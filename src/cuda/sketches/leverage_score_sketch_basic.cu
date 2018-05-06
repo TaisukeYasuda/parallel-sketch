@@ -25,7 +25,7 @@ namespace par {
 template <typename I, typename T>
 leverage_score_sketch<I, T>::leverage_score_sketch(size_t p, size_t n, unsigned int s) {
     size_t D_size = sizeof(double) * p;
-    size_t Omega_size = sizeof(int) * n;
+    size_t Omega_size = sizeof(int) * p;
     this->D = (double*)malloc(D_size); // diagonal rescaling
     this->Omega = (int*)malloc(Omega_size); // sampling
     this->seed = s;
@@ -72,6 +72,7 @@ template <typename I, typename T>
 void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
     cublasHandle_t handle;
     cudaError_t cuda_status = cudaSuccess;
+    cublasStatus_t cublas_status;
     if (!this->sketched) {
         // find a 1+1/36 subspace embedding SA_count
         size_t p_count = sketch::par::count_sketch<I, T>::eps_approx_rows(n, d, 1.0/36);
@@ -83,8 +84,10 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
             sketch::par::count_sketch<I, T> S_count(p_count, n);
             S_count.sketch(A, &SA_count, n, d);
         } else {
-            SA_count = *A;
             p_count = n;
+            size_t SA_count_size = sizeof(double) * p_count * d;
+            cudaMalloc(&SA_count, SA_count_size); // allocate space on device
+            cudaMemcpy(SA_count, *A, SA_count_size, cudaMemcpyDeviceToDevice);
         }
         cudaMalloc(&SA_count_col, sizeof(double) * p_count * d); // allocate space on device
 
@@ -95,11 +98,11 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
         assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
         // set up QR decomposition call
         int lwork; // working space size
-        int tau_size = p_count > d ? d : p_count; // min(p_count, d)
+        int tau_size = p_count;
         double *d_work; // working space
         double *d_tau; // tau (representation of Q)
         int *dev_info; // info in gpu
-        cuda_status =  cudaMalloc((void**)&dev_info, sizeof(int));
+        cuda_status = cudaMalloc((void**)&dev_info, sizeof(int));
         assert(cudaSuccess == cuda_status);
         cublasCreate(&handle);
         gpu_cublas_trans(handle, SA_count, SA_count_col, p_count, d);
@@ -122,28 +125,27 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
             p_count,         // number of rows of SA_count
             d,               // number of columns of SA_count
             SA_count_col,    // matrix to decompose
-            p_count,         // leading dimension,
+            p_count,         // leading dimension
             d_tau,           // tau
             d_work,          // working space
             lwork,           // working space size
             dev_info         // info
         );
+        assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
         cuda_status = cudaDeviceSynchronize();
         assert(cudaSuccess == cuda_status);
-        assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
         // compute R = Q^T * SA_count (R^T = SA_count^T * Q)
-        double *R;
-        cuda_status = cudaMalloc((void**)&R, sizeof(double) * p_count * d); // allocate R
+        double *R = SA_count;
         assert(cudaSuccess == cuda_status);
         cusolver_status = cusolverDnDormqr(
             cusolverH,         // cuSolverDN library context
             CUBLAS_SIDE_RIGHT, // multiply Q on right
             CUBLAS_OP_N,       //
-            p_count,           // number of rows of SA_count
-            d,                 // number of columns of SA_count
+            d,                 // number of rows of SA_count^T
+            p_count,           // number of columns of SA_count^T
             tau_size,          // number of elementary reflections
-            SA_count,          // matrix to decompose TRANSPOSED in column major
-            d,                 // leading dimension of SA_count
+            SA_count_col,      // matrix which was QR factored
+            p_count,           // leading dimension of SA_count_col
             d_tau,             // Q
             R,                 // R^T in column major, or R in row major
             d,                 // leading dimension of R
@@ -151,10 +153,10 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
             lwork,             // working space size
             dev_info           // info
         );
+        assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
         cuda_status = cudaDeviceSynchronize();
         assert(cudaSuccess == cuda_status);
         if (d_work) cudaFree(d_work); // done with d_work
-        assert(cudaSuccess == cuda_status);
         // invert R (upper d * d submatrix of R to be precise)
         double *R_inv;
         cuda_status = cudaMalloc((void**)&R_inv, sizeof(double) * d * d); // allocate R inverse
@@ -265,7 +267,7 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
         cublasDgemm(
             handle,        // cublas library context
             CUBLAS_OP_N,   // transposing is handled by switching order
-            CUBLAS_OP_N,   //
+            CUBLAS_OP_N,   // doesn't matter here
             p_gauss,       // last outer dimension
             n,             // first outer dimension
             d,             // inner dimension
@@ -280,20 +282,24 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
         );
         cuda_status = cudaDeviceSynchronize();
         assert(cudaSuccess == cuda_status);
-
         // scaled row norms of ARG are estimates of leverage scores
         double beta = 4.0 / 7.0;
         double *q = (double*)malloc(sizeof(double) * n);
         double *cdf = (double*)malloc(sizeof(double) * n);
-        double temp, sum = 0.0;
+        double temp;
+        double sum = 0.0;
         for (unsigned int i = 0; i < n; i++) {
-            cublasDnrm2(handle, p_gauss, ARG+i*p_gauss, 1, &temp);
+            double *row =  ARG + i*p_gauss;
+            cublas_status = cublasDnrm2(handle, p_gauss, row, 1, &temp);
+            assert(CUBLAS_STATUS_SUCCESS == cublas_status);
             q[i] = beta * temp * temp / d;
             sum += q[i];
             cdf[i] = sum;
         }
         cublasDestroy(handle);
         double excess_probability = (1.0 - sum) / n;
+        for (unsigned int i = 0; i < n; i++)
+            cdf[i] += excess_probability * (i+1);
 
         // sample, q_i is the above plus the excess probability
         std::mt19937 mt(seed);
@@ -316,18 +322,17 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
     for (unsigned int i = 0; i < this->_p; i++) {
         unsigned int j = (this->Omega)[i];
         double scale = (this->D)[i];
-        cublasDaxpy(
+        cublas_status = cublasDaxpy(
             handle,       // cublas library context
             d,            // length of vectors
             &scale,       // scaling factor
             (*A)+j*d,     // sampled A row
-            d,            // leading dimension of row
-            (*SA),        // destination
-            d             // leading dimension of result row
+            1,            // leading dimension of row
+            (*SA)+i*d,    // destination
+            1             // leading dimension of result row
         );
+        assert(CUBLAS_STATUS_SUCCESS == cublas_status);
     }
-    cuda_status = cudaDeviceSynchronize();
-    assert(cudaSuccess == cuda_status);
     if (handle) cublasDestroy(handle);
 }
 
