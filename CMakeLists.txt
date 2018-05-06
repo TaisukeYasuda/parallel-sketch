@@ -52,7 +52,7 @@ set(CXX_SOURCES
     src/cpp/sketches/gaussian_sketch.cpp
     src/cpp/sketches/count_sketch.cpp
     src/cpp/sketches/leverage_score_sketch.cpp
-#     src/cpp/sketches/count_min_sketch.cpp
+    src/cpp/sketches/count_min_sketch.cpp
     src/util.cpp
 )
 # make libraries
@@ -73,15 +73,14 @@ add_executable(test_subspace_embedding
 )
 
 # compile mad sketch
- add_executable(run_mad_sketch
-     src/cpp/applications/run_MAD_sketch.cpp
-     src/cpp/applications/MAD_sketch.cpp)
- target_link_libraries(run_mad_sketch sketch)
+add_executable(run_mad_sketch
+    src/cpp/applications/run_MAD_sketch.cpp
+    src/cpp/applications/MAD_sketch.cpp)
+target_link_libraries(run_mad_sketch sketch)
 
 # copy test cases to binary directory
 file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY
     test/regress.py
-    test/benchmark.py
     test/gen_reference.py
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
