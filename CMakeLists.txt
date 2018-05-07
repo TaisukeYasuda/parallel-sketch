@@ -16,7 +16,7 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CUDA_HOST_COMPILER g++)
 list(APPEND CUDA_NVCC_FLAGS "-O3 --gpu-architecture compute_61 -std=c++11")
-list(APPEND CUDA_NVCC_FLAGS "-Xcompiler -fopenmp")
+set(CMAKE_CUDA_FLAGS "-Wall -fopenmp")
 
 # set cuda source files
 set(CUDA_SOURCES
@@ -45,6 +45,8 @@ target_link_libraries(test_sketch_cuda gomp)
 
 # dependencies: comment out if these libraries are installed on your system
 include_directories(deps/eigen-3.3.4/include/eigen3)
+
+set(CMAKE_CXX_FLAGS "-Wall -fopenmp")
 
 #set c++ source files
 set(CXX_SOURCES
