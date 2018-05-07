@@ -8,9 +8,14 @@ parallel implementation is written in CUDA for NVIDIA GPUs.
 ```
 .
 ├── docs
+├── include                      # header files
 ├── src                          # source implementation
-│   ├── applications             # downstream algorithms
-│   └── sketches                 # sketching algorithms
+│   ├── cpp                      # C++ sequential implementation
+│   │   ├── sketches             # sketching algorithms
+│   │   └── applications         # downstream applications
+│   └── cuda                     # CUDA parallel implementation
+│       ├── sketches             # sketching algorithms
+│       └── applications         # downstream applications
 └── test                         # tests
     └── data                     # testing data
         ├── images               # grayscale images
