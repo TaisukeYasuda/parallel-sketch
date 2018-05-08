@@ -17,7 +17,7 @@
 #define SKETCH_TYPE 3
 
 #define SEED 116
-#define MAX_ROWS 500
+#define MAX_ROWS 100000
 
 int main(int argc, char *argv[]) {
     std::cout << "Testing sketch CUDA " << argv[SKETCH_TYPE] << std::endl;
@@ -34,6 +34,8 @@ int main(int argc, char *argv[]) {
     size_t p;
     double eps = 0.5;
     sketch::par::sketch_interface<double*, double*> *S;
+
+    std::cout << "Testing matrix of size " << n << " x " << d << std::endl;
 
     if (sketch_type.compare("count_sketch") == 0) {
         p = sketch::par::count_sketch<double*, double*>::eps_approx_rows(n, d, eps);
@@ -60,6 +62,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "Invalid sketch type." << std::endl;
         exit(1);
     }
+    std::cout << "Making sketch of size " << p << std::endl;
 
     size_t A_size = sizeof(double) * n * d;
     size_t SA_size = sizeof(double) * p * d;

@@ -14,7 +14,7 @@
 #define SKETCH_TYPE 3
 
 #define SEED 116
-#define MAX_ROWS 500
+#define MAX_ROWS 100000
 
 int main(int argc, char *argv[]) {
     typedef Eigen::MatrixXd M;
@@ -31,6 +31,8 @@ int main(int argc, char *argv[]) {
     size_t n = temp->size(), d = temp->at(0).size(), p;
     double eps = 0.5;
     sketch::seq::sketch_interface<M, M> *S;
+
+    std::cout << "Testing matrix of size " << n << " x " << d << std::endl;
 
     if (sketch_type.compare("count_sketch") == 0) {
         p = sketch::seq::count_sketch<M, M>::eps_approx_rows(n, d, eps);

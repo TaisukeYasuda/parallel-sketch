@@ -92,4 +92,5 @@ file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY
     test/regress.py
     test/gen_reference.py
+    test/time_flower.py
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
