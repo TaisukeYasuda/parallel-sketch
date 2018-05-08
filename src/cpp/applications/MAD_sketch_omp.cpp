@@ -122,20 +122,24 @@ MAD_sketch::~MAD_sketch() {
 
 void MAD_sketch::run_sim(size_t iters) {
     size_t sketch_size = this->d * this->w;
-    size_t seed_size = sketch_size * this->n;
+    //size_t seed_size = sketch_size * this->n;
 
-    double *temp_D = new double[seed_size];
+   // #pragma omp parallel
+   // {
+    
+    size_t tid = omp_get_thread_num(),
+           nt  = omp_get_num_threads();
+    size_t start_range = 0, //= (tid * this->n) / nt,
+           end_range = this-> n, //= ((tid+1) * this->n) / nt,
+           elems = end_range - start_range,
+           seed_range = elems * sketch_size;
 
-    #pragma omp parallel
-    {
-
-    size_t u, v, start_u, start_v, idx;
+    double *temp_D = new double[seed_range];
+    
+    size_t u, v, start_u, start_u_adj, start_v, idx;
     for(size_t z = 0; z < iters; z++) {
-        memset(temp_D, 0, seed_size * sizeof(double));
+        memset(temp_D, 0, seed_range * sizeof(double));
 
-        #pragma omp barrier
-        
-        #pragma omp for schedule(static)
         for(size_t i = 0; i < this->num_edges; i++) {
             idx = i * 2;
             u = this->edges[idx];
@@ -143,22 +147,25 @@ void MAD_sketch::run_sim(size_t iters) {
 
             double factor = this->edge_factors[i];
 
-            start_u = u * sketch_size;
-            start_v = v * sketch_size;
-            for(size_t j = 0; j < sketch_size; j++) {
-                #pragma omp atomic
-                temp_D[start_u + j] += factor * this->Ys[start_v + j];
+            if(start_range <= u && u < end_range) {
+                start_u = (u - start_range) * sketch_size;
+                start_v = v * sketch_size;
+                
+                for(size_t j = 0; j < sketch_size; j++) 
+                    temp_D[start_u + j] += factor * this->Ys[start_v + j];
+            }
 
-                #pragma omp atomic
-                temp_D[start_v + j] += factor * this->Ys[start_u + j];
+            if(start_range <= v && v < end_range) {
+                start_u = u * sketch_size;
+                start_v = (v - start_range) * sketch_size;
+                
+                for(size_t j = 0; j < sketch_size; j++) 
+                    temp_D[start_v + j] += factor * this->Ys[start_u + j];
             }
         }
 
-        #pragma omp barrier
-
         double M_factor, D_factor, seed_factor, r_factor;
-        #pragma omp parallel for schedule(static)
-        for(size_t i = 0; i < this->n; i++) {
+        for(size_t i = start_range; i < end_range; i++) {
             M_factor = this->Mvv[i];
 
             seed_factor = this->mu_1 * this->p_inj[i] * M_factor;
@@ -166,19 +173,22 @@ void MAD_sketch::run_sim(size_t iters) {
             r_factor    = this->mu_3 * this->p_abnd[i] * M_factor;
 
             start_u = i * sketch_size;
+            start_u_adj = (i - start_range) * sketch_size;
             for(size_t j = 0; j < sketch_size; j++) {
                 this->Ys[start_u + j] = (seed_factor * this->seeds[start_u + j] +
-                                         D_factor * temp_D[start_u + j] +
+                                         D_factor * temp_D[start_u_adj + j] +
                                          r_factor * this->r[j]);
             }
         }
 
-        #pragma omp barrier
-    }
-
+       // #pragma omp barrier
     }
 
     delete temp_D;
+
+    //}
+
+    
 }
 
 std::vector< sketch::seq::count_min_sketch<double> > *MAD_sketch::get_labels(size_t *hashes) {
