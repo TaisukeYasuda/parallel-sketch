@@ -7,7 +7,7 @@ sketch_size := 23
 num_hashes := 1
 
 run:
-	../../build/run_mad_sketch $(edges_file) $(seeds_file) $(eval_file) $(num_iters) $(num_hashes) $(sketch_size)
+	../../build/run_mad_sketch_omp $(edges_file) $(seeds_file) $(eval_file) $(num_iters) $(num_hashes) $(sketch_size)
 	
 eval:
 	python mrr.py --n_labels 23 --output_file result.txt --gold_file $(gold_file)
