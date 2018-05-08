@@ -76,6 +76,11 @@ add_executable(test_subspace_embedding
 )
 
 # compile mad sketch
+add_executable(run_mad_sketch_omp
+    src/cpp/applications/run_MAD_sketch.cpp
+    src/cpp/applications/MAD_sketch_omp.cpp)
+target_link_libraries(run_mad_sketch_omp sketch)
+
 add_executable(run_mad_sketch
     src/cpp/applications/run_MAD_sketch.cpp
     src/cpp/applications/MAD_sketch.cpp)
