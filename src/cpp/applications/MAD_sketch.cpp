@@ -53,7 +53,7 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
     size_t u, v, weight, idx;
     double u_val, v_val;
 
-    #pragma omp for 
+    #pragma omp for schedule(static) 
     for(size_t i = 0; i < this->num_edges; i++) {
         //Initialize graph
         u = edge_list_->at(i).first.first;
@@ -92,13 +92,19 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
 
     memcpy(this->r, r_->get_CM(), sketch_size * sizeof(double));
 
+    #pragma omp parallel
+    {
+    
     size_t offset;
+    #pragma omp for schedule(static)
     for(size_t i = 0; i < n_; i++){
         this->Mvv[i] = 1.0 / ((this->Mvv[i] * mu_2) + p_inj_[i] * mu_1_ + mu_3_);
         offset = i * sketch_size;
 
         memcpy(this->Ys+offset,    seeds_->at(i).get_CM(), sketch_size * sizeof(double));
         memcpy(this->seeds+offset, seeds_->at(i).get_CM(), sketch_size * sizeof(double));
+
+    }
 
     }
 
@@ -121,10 +127,16 @@ void MAD_sketch::run_sim(size_t iters) {
 
     double *temp_D = new double[seed_size];
 
+    #pragma omp parallel
+    {
+
     size_t u, v, start_u, start_v, idx;
     for(size_t z = 0; z < iters; z++) {
         memset(temp_D, 0, seed_size * sizeof(double));
 
+        #pragma omp barrier
+        
+        #pragma omp for schedule(static)
         for(size_t i = 0; i < this->num_edges; i++) {
             idx = i * 2;
             u = this->edges[idx];
@@ -135,13 +147,19 @@ void MAD_sketch::run_sim(size_t iters) {
             start_u = u * sketch_size;
             start_v = v * sketch_size;
             for(size_t j = 0; j < sketch_size; j++) {
-               temp_D[start_u + j] += factor * this->Ys[start_v + j];
-               temp_D[start_v + j] += factor * this->Ys[start_u + j];
+                #pragma omp atomic
+                temp_D[start_u + j] += factor * this->Ys[start_v + j];
+
+                #pragma omp atomic
+                temp_D[start_v + j] += factor * this->Ys[start_u + j];
             }
         }
 
+        #pragma omp barrier
+
         double M_factor, D_factor, seed_factor, r_factor;
-        for(size_t i = 0; i < n; i++) {
+        #pragma omp parallel for schedule(static)
+        for(size_t i = 0; i < this->n; i++) {
             M_factor = this->Mvv[i];
 
             seed_factor = this->mu_1 * this->p_inj[i] * M_factor;
@@ -155,6 +173,10 @@ void MAD_sketch::run_sim(size_t iters) {
                                          r_factor * this->r[j]);
             }
         }
+
+        #pragma omp barrier
+    }
+
     }
 
     delete temp_D;
