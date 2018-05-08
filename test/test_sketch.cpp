@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
     if (sketch_type.compare("count_sketch") == 0) {
         p = sketch::seq::count_sketch<M, M>::eps_approx_rows(n, d, eps);
         if (p > MAX_ROWS) {
+            std::cout << "\tSketch size too large " << p << std::endl;
             p = MAX_ROWS;
             std::cout << "\tSketch size capped to " << p << std::endl;
         }
@@ -42,6 +43,7 @@ int main(int argc, char *argv[]) {
     } else if (sketch_type.compare("gaussian_sketch") == 0) {
         p = sketch::seq::gaussian_sketch<M, M>::eps_approx_rows(n, d, eps);
         if (p > MAX_ROWS) {
+            std::cout << "\tSketch size too large " << p << std::endl;
             p = MAX_ROWS;
             std::cout << "\tSketch size capped to " << p << std::endl;
         }
@@ -49,6 +51,7 @@ int main(int argc, char *argv[]) {
     } else if (sketch_type.compare("leverage_score_sketch") == 0) {
         p = sketch::seq::leverage_score_sketch<M, M>::eps_approx_rows(n, d, eps);
         if (p > MAX_ROWS) {
+            std::cout << "\tSketch size too large " << p << std::endl;
             p = MAX_ROWS;
             std::cout << "\tSketch size capped to " << p << std::endl;
         }

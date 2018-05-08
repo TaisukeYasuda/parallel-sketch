@@ -50,22 +50,6 @@ __global__ void initIdentityGPU(double *R, int d) {
     }
 }
 
-__global__ void approximateLeverageScore(cublasHandle_t handle, double *ARG, size_t n, size_t p_gauss, size_t d, double *q) {
-    double beta = 4.0 / 7.0;
-    double temp;
-
-    int row_index = blockDim.x * blockIdx.x + threadIdx.x;
-
-    if (row_index >= n) return;
-
-    // compute approximate leverage scores
-    double *row =  ARG + row_index * p_gauss;
-    cublasStatus_t cublas_status;
-    //cublas_status = cublasDnrm2(handle, p_gauss, row, 1, &temp);
-    assert(CUBLAS_STATUS_SUCCESS == cublas_status);
-    q[row_index] = beta * temp * temp / d;
-}
-
 void gpu_cublas_trans(cublasHandle_t handle, double *A, double *At, size_t n, size_t d) {
     const double alpha_t = 1;
     const double beta_t = 0;
@@ -270,8 +254,13 @@ void leverage_score_sketch<I, T>::sketch(I *A, T *SA, size_t n, size_t d) {
         std::uniform_real_distribution<double> unif(0, 1);
         for (unsigned int i = 0; i < this->_p; i++) {
             double score = unif(mt), q_j;
-            unsigned int j = 0;
-            while (cdf[j] < score) j++; // @TODO binary search
+            unsigned int lo = 0, hi = n, mid;
+            while (lo < hi) {
+                mid = lo + (hi-lo) / 2;
+                if (cdf[mid] < score) lo = mid + 1;
+                else hi = mid;
+            }
+            unsigned int j = lo;
             this->Omega[i] = j;
             q_j = q[j] + excess_probability;
             double scale = 1.0 / sqrt(q_j * this->_p);

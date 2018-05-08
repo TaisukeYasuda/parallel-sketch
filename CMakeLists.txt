@@ -16,6 +16,7 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CUDA_HOST_COMPILER g++)
 list(APPEND CUDA_NVCC_FLAGS "-O3 --gpu-architecture compute_61 -std=c++11")
+list(APPEND CUDA_NVCC_FLAGS -lcublas_device)
 set(CMAKE_CUDA_FLAGS "-Wall -fopenmp")
 
 # set cuda source files
@@ -24,7 +25,7 @@ set(CUDA_SOURCES
     src/cuda/sketches/adaptive_sketch.cu
     src/cuda/sketches/count_sketch_basic.cu
     src/cuda/sketches/gaussian_sketch_basic.cu
-    src/cuda/sketches/leverage_score_sketch_basic.cu
+    src/cuda/sketches/leverage_score_sketch_opt.cu
     src/util.cpp
 )
 
