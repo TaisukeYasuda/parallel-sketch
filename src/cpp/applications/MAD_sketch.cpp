@@ -12,8 +12,6 @@
 #include <cstddef>
 #include <random>
 
-#include<iostream>
-
 MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double mu_3_,
     double *p_inj_, double *p_cont_, double *p_abnd_,
     std::vector< std::pair< std::pair<size_t, size_t>, double> > *edge_list_,
