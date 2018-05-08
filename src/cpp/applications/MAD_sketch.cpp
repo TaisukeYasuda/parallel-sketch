@@ -47,10 +47,13 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
 
     memset(this->Mvv, 0, n_ * sizeof(double));
 
+    #pragma omp parallel
+    {
+
     size_t u, v, weight, idx;
     double u_val, v_val;
 
-#pragma omp parallel for schedule(auto)
+    #pragma omp for 
     for(size_t i = 0; i < this->num_edges; i++) {
         //Initialize graph
         u = edge_list_->at(i).first.first;
@@ -69,9 +72,14 @@ MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_
 
         //Modify Mvv
         if(u != v) {
+            #pragma omp atomic
             this->Mvv[u] += this->edge_factors[i];
+            
+            #pragma omp atomic
             this->Mvv[v] += this->edge_factors[i];
         }
+    }
+
     }
 
     size_t sketch_size = d_ * w_;
