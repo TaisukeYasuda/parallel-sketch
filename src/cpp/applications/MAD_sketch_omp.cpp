@@ -122,15 +122,14 @@ MAD_sketch::~MAD_sketch() {
 
 void MAD_sketch::run_sim(size_t iters) {
     size_t sketch_size = this->d * this->w;
-    //size_t seed_size = sketch_size * this->n;
 
-   // #pragma omp parallel
-   // {
+   #pragma omp parallel num_threads(12)
+   {
     
     size_t tid = omp_get_thread_num(),
            nt  = omp_get_num_threads();
-    size_t start_range = 0, //= (tid * this->n) / nt,
-           end_range = this-> n, //= ((tid+1) * this->n) / nt,
+    size_t start_range = (tid * this->n) / nt,
+           end_range = ((tid+1) * this->n) / nt,
            elems = end_range - start_range,
            seed_range = elems * sketch_size;
 
@@ -163,7 +162,8 @@ void MAD_sketch::run_sim(size_t iters) {
                     temp_D[start_v + j] += factor * this->Ys[start_u + j];
             }
         }
-
+        
+        #pragma omp barrier
         double M_factor, D_factor, seed_factor, r_factor;
         for(size_t i = start_range; i < end_range; i++) {
             M_factor = this->Mvv[i];
@@ -181,12 +181,12 @@ void MAD_sketch::run_sim(size_t iters) {
             }
         }
 
-       // #pragma omp barrier
+        #pragma omp barrier
     }
 
     delete temp_D;
 
-    //}
+    }
 
     
 }

@@ -35,7 +35,7 @@ graph22  = [executable, edges_file_2, seeds_file_22, eval_file_3, '2', '1', '23'
 graph210 = [executable, edges_file_2, seeds_file_210, eval_file_3, '10', '1', '23']
 graph3   = [executable, edges_file_3, seeds_file_3, eval_file_3, '10', '1', '50']
 
-graphs = [graph3]# [graph12, graph110, graph22, graph210, graph3]
+graphs = [graph12, graph110, graph22, graph210, graph3]
 
 def getExecTime(params):
     start = time.time()
