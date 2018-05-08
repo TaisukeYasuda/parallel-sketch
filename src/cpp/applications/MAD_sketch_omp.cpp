@@ -123,8 +123,8 @@ MAD_sketch::~MAD_sketch() {
 void MAD_sketch::run_sim(size_t iters) {
     size_t sketch_size = this->d * this->w;
 
-   #pragma omp parallel num_threads(12)
-   {
+    #pragma omp parallel num_threads(8)
+    {
     
     size_t tid = omp_get_thread_num(),
            nt  = omp_get_num_threads();
