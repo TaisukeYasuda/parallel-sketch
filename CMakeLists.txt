@@ -16,6 +16,7 @@ set(CUDA_SEPARABLE_COMPILATION ON)
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 set(CUDA_HOST_COMPILER g++)
 list(APPEND CUDA_NVCC_FLAGS "-O3 --gpu-architecture compute_61 -std=c++11")
+list(APPEND CUDA_NVCC_FLAGS -lcublas_device)
 set(CMAKE_CUDA_FLAGS "-Wall -fopenmp")
 
 # set cuda source files
@@ -24,7 +25,7 @@ set(CUDA_SOURCES
     src/cuda/sketches/adaptive_sketch.cu
     src/cuda/sketches/count_sketch_basic.cu
     src/cuda/sketches/gaussian_sketch_basic.cu
-    src/cuda/sketches/leverage_score_sketch_basic.cu
+    src/cuda/sketches/leverage_score_sketch_opt.cu
     src/util.cpp
 )
 
@@ -76,6 +77,11 @@ add_executable(test_subspace_embedding
 )
 
 # compile mad sketch
+add_executable(run_mad_sketch_omp
+    src/cpp/applications/run_MAD_sketch.cpp
+    src/cpp/applications/MAD_sketch_omp.cpp)
+target_link_libraries(run_mad_sketch_omp sketch)
+
 add_executable(run_mad_sketch
     src/cpp/applications/run_MAD_sketch.cpp
     src/cpp/applications/MAD_sketch.cpp)
@@ -86,4 +92,5 @@ file(COPY test/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY
     test/regress.py
     test/gen_reference.py
+    test/time_flower.py
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
