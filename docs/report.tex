@@ -3,7 +3,46 @@
 \usepackage{url}
 \usepackage{hyperref}
 \usepackage[margin=1in]{geometry}
-\usepackage{cite}
+\usepackage{cite, enumerate, amsmath, amssymb}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%     CODE LATEX     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{color}
+\usepackage{xcolor}
+\definecolor{bluekeywords}{rgb}{0.13,0.13,1}
+\definecolor{greencomments}{rgb}{0,0.5,0}
+\definecolor{redstrings}{rgb}{0.9,0,0}
+\definecolor{light-gray}{gray}{0.95}
+
+\usepackage{listings}
+\newcommand{\MYhref}[3][blue]{\href{#2}{\color{#1}{#3}}}%
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstdefinelanguage{Shell}{
+  keywords={tar, cd, make},
+  keywordstyle=\color{dkgreen}\bfseries,
+  alsoletter={+},
+  ndkeywords={python, py, javac, java, gcc, c, g++, cpp, .txt, .tar},
+  ndkeywordstyle=\color{dkgreen}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+}
+\lstset{columns=fullflexible, basicstyle=\ttfamily,
+    backgroundcolor=\color{light-gray},xleftmargin=0.5cm,frame=tlbr,framesep=4pt,framerule=0pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \providecommand{\abs}[1]{\left\vert#1\right\vert}
 \providecommand{\norm}[1]{\left\Vert#1\right\Vert}
@@ -26,21 +65,80 @@
 \section{Background}
 Sketching algorithms are a class of randomized approximation algorithms designed to approximate large matrices with ones with less rows and/or columns. These algorithms are known to have provable approximation guarantees with high probability and can be applied to countless downstream applications for asymptotically faster approximation algorithms, including but most certainly not limited to linear regression, low rank approximations, and preconditioning. We refer the audience to a monograph by David Woodruff for an excellent overview of sketching algorithms \cite{woodruff2014sketching}, especially as applied to linear algebraic operations.
 
+We describe more specifically what sketching looks like. In theory, all our sketches are linear and take the form of a random matrix $S$ sampled from some distribution over $\mathbb R^{p\times n}$. When we use this to sketch a large matrix $A\in\mathbb R^{n\times d}$, we create
+\[
+	SA\in\mathbb R^{p\times d},
+\]
+where $p\ll n$ and thus $SA$ has much fewer rows than $A$. As mentioned above, the point of sketching algorithms is to approximate matrices with smaller ones. Of course, we need to be precise in describing what the ``approximation'' guarantees. In the theoretical literature, a standard approximation guarantee is a subspace embedding, so this is what we guarantee in our library, with probability of success at least $99/100$. The subspace embedding guarantee is that we preserve distances up to a $(1\pm\varepsilon)$ multiplicative factor, where $\varepsilon>0$ is a given measure of accuracy. Written in math, this is the guarantee that with probability at least $99/100$, we have that
+\[
+	\norm{SAx}_2^2 = (1\pm\varepsilon)\norm{Ax}_2^2
+\]
+for all $x\in\mathbb R^d$, where the norm above is the standard Euclidean norm. Note that there are a whole variety of other types of approximation guarantees, such as matrix product guarantees, projection cost preservation, etc. However, we stick to just the subspace embedding guarantee for now. Thus, we expose the following interface for our library:
+\begin{lstlisting}
+class sketch_interface {
+	public:
+		sketch_interface(size_t p, size_t n);
+		void sketch(matrix *A, matrix *SA);
+		size_t eps_approx_rows(size_t n, size_t d, double eps);
+}
+\end{lstlisting}
+where \texttt{eps\_approx\_rows} returns the number of rows $p$ needed for the sketch $S$ to give a subspace embedding with probability at least $99/100$. 
+
+The sketching library that we have implemented currently supports three general matrix sketching algorithms: Gaussian sketch, count sketch, and leverage score sampling sketch. These sketching algorithms are implemented as the classes \texttt{gaussian\_sketch}, \texttt{count\_sketch}, and \texttt{leverage\_score\_sketch} and inherit from the above interface. The Gaussian sketch and count sketch are extremely straightforward algorithms that are extremely easily parallelized. They are extremely useful as standalone sketching algorithms, but the main reason for their implementation is that they are used as a subroutine for the much more advanced leverage score sampling. We now describe the algorithms implemented in our library in more detail. 
+
+\subsection{Gaussian Sketch}
+The Gaussian sketch is extremely simple, for a specified number of rows $p$ for the sketch, we sample a $p\times n$ matrix of IID Gaussians with mean $0$ and variance $1/p$. This is the construction for the famous Johnson-Lindenstrauss lemma in the form of a randomized algorithm, rather than a probabilistic existence statement. Since the sketch is just a multiplication by a dense matrix, there is not much we can do to speed this algorithm up besides general tricks for matrix multiplication. For a $(1+\varepsilon)$ subspace embedding, we just need
+\[
+	p\geq 4\left(\frac{\varepsilon^2}2-\frac{\varepsilon^3}3\right)^{-1}\log n
+\]
+rows, a proof for which can be found in \cite{dasgupta2003elementary}, for example.
+
+\subsection{Count Sketch}
+Count sketch is a slightly more sophisticated sketching algorithm that is extremely sparse: it only has one nonzero entry for every column. Thus, it can be stored and applied very quickly. In return, we pay for a larger value of $p$ for a subspace embedding. The sketching matrix $S$ is formed as follows: for each of the $n$ columns of the $p\times n$ matrix $S$, uniformly randomly select one of the $p$ indices, and uniformly choose an entry from $\{1,-1\}$. For instance, a $4\times 5$ count sketch matrix might look like:
+\[
+	\begin{pmatrix}
+		0 & 0 & -1 & 1 & 0 \\
+		1 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 1 \\
+		0 & -1 & 0 & 0 & 0
+	\end{pmatrix}
+\]
+For the number of rows $p$, we refer to lecture slides by David Woodruff, found at \url{http://www.cs.cmu.edu/afs/cs/user/dwoodruf/www/teaching/15859-fall17/weekTwo.pdf}, which provides a proof for
+\[
+	p\geq \frac{6d^2}{\delta\varepsilon^2}
+\]
+where $\delta$ is a bound on the error probability. 
+
+We now the describe the dependency structure for this algorithm. Essentially, the algorithm looks at each row of the input matrix $A$, chooses a random sign to scale it by, and copies the result to a random row index $j\in[p]$. Since the rows of the matrix $A$ are moved together to the same location of the sketched matrix $SA$, the columns are dependent within a single row. However, the rows are independent and thus the sketched result can be computed independently for blocks of rows and then combined later by linearity of the sketch. 
+
 \subsection{Leverage Score Sampling}
-The algorithm for fast approximation of leverage scores is given by
-\begin{itemize}
+We finally discuss a sketching algorithm based on sampling. Uniformly sampling the rows of a matrix is a very intuitive way of forming an approximation to the matrix, but unfortunately, fails to give theoretical guarantees. The problem is that in order to capture the essence of a matrix, one needs to make sure to capture a small number of rows that are ``outliers'' in some sense, but uniform sampling will not capture these rows with high enough probability. However, sketches based on sampling are desirable for many reasons. For instance, the sketches discussed will yield dense matrices in general, even if the input matrix is sparse. However, sampling-based sketches will preserve sparsity. In addition, sampling-based sketches are more interpretable, as the rows are rows from the original matrix themselves, not some linear combination. 
+
+The way to make sampling work as a sketch is to sample proportionally to the \emph{leverage scores} of a matrix, which are the norms of the left singular vectors of the matrix (columns of $U$ where $A = U\Sigma V^\top$ is the singular value decomposition). Note that exact computation of the leverage scores is not compatible with a sketching algorithm, since this takes way too long and defeats the purpose of computing the sketch. Thus, we employ a fast approximation algorithm to obtain constant factor estimates of the leverage scores, which can then be used to obtain the leverage score sampling sketch. The approximation of the leverage scores is based on other subspace embedding sketches -- this is where we use our Gaussian sketch and count sketch from before. The pseudocode for the algorithm for fast approximation of leverage scores is given as follows:
+\begin{enumerate}
 	\item Compute a count sketch $SA$ of the input matrix $A$
 	\item Compute a factorization $SA = QR^{-1}$ so that $Q$ is orthonormal
 	\item Compute $R$, the inverse of $R^{-1}$
 	\item Compute a Gaussian sketch $RG$ of $R$
 	\item Compute $A(RG)$
 	\item Compute the row norms times a scalar factor
-\end{itemize}
-and the sketch is just sampling proportionally to these scores. 
+\end{enumerate}
+Then, we obtain a $(1+\varepsilon)$ subspace embedding sketch based on sketching by sampling $p$ times, where
+\[
+	p\geq \frac{C\cdot \frac43\frac{d}{\beta}\log d}{\varepsilon^2}
+\]
+for which $\beta = 4/7$ and 
+\[
+	2de^{-C6d\log d/6d} = 2de^{-C\log d} = 2d^{1-C}<\frac1{100}\impliedby d^{C-1}>200\iff C = 1 + \log_d 200.
+\]
+These numbers were obtained by tracking constants for the proof given in lecture slides by David Woodruff (\url{http://www.cs.cmu.edu/afs/cs/user/dwoodruf/www/teaching/15859-fall17/weekFour.pdf}). 
+
+This algorithm is the main algorithm that benefits greatly from running on a GPU, since it is quite computationally intensive in exchange for sparsity and interpretability of the resulting sketch. As described in more detail in the section \ref{approach-leverage}, we can reveal independence structure from the algorithm after taking the QR decomposition, which allows us to decouple the columns of $R$ when we compute the inverse of $R^{-1}$, along with subsequent computations. 
 
 \section{Approach}
+Our baseline sequential implementation for our matrix sketching algorithms was developed in C++, using the linear algebra library Eigen (\url{https://eigen.tuxfamily.org/}). Our optimized GPU implementation was developed in CUDA on NVIDIA GPUs, making use of the CUDA helper libraries CUBLAS, CUSOLVER, and CURAND. 
 
-\subsection{Leverage Score Sampling}
+\subsection{Leverage Score Sampling}\label{approach-leverage}
 At first glance, the algorithm seems to suffer from a lot of dependencies, as the algorithm involves a lot of matrix operations both from the left and right. Another level of complexity is added by the fact that CUBLAS, the CUDA basic linear algebra subroutines library, is written to execute everything in column major order. We carefully describe from an implementation point of view how to milk out all the independent components to this algorithm.
 
 \subsubsection{Sampling Gaussians}
@@ -62,12 +160,12 @@ At this time, recall that the columns of $R$ corresponding to column blocks $B_t
 \subsubsection{Computation of Approximated Leverage Scores}
 In the final step for computing the approximated leverage scores, we must combine $RG$ into one matrix since the row norms of $ARG$ must be computed. However, once $RG$ is computed, $A$ can be split up into row blocks and the $i$th leverage score estimate
 \[
-	\ell_i := \frac{\beta}{d}\norm{(e_i^\top A)(RG)}^2
+	\ell_i := \frac{\beta}{d}\norm{(e_i^\top A)(RG)}_2^2
 \]
 can be computed independently. In addition, we will need the CDF for sampling later, for which we can precompute the partial sums as in split counters. 
 
 \subsubsection{Sampling and Applying the Sketch}
-The last step is to sample according to the distribution and apply the sketch, but these are easily parallelized. 
+The last step is to sample according to the distribution and apply the sketch, but these are easily parallelized.
 
 \section{Results}
 
