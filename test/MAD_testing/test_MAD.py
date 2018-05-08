@@ -36,7 +36,7 @@ graph3   = [executable, edges_file_3, seeds_file_3, eval_file_3, '10', '1', '50'
 
 
 start = time.time()
-p = subprocess.Popen(graph22)
+p = subprocess.Popen(graph3)
 p.wait()
 
 time_taken = time.time() - start
