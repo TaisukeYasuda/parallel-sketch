@@ -12,7 +12,8 @@
 #include <cstddef>
 #include <random>
 #include <omp.h>
-
+#include <immintrin.h>
+#include <iostream>
 MAD_sketch::MAD_sketch(size_t n_, size_t d_, size_t w_, double mu_1_, double mu_2_, double mu_3_,
     double *p_inj_, double *p_cont_, double *p_abnd_,
     std::vector< std::pair< std::pair<size_t, size_t>, double> > *edge_list_,
@@ -118,16 +119,45 @@ MAD_sketch::~MAD_sketch() {
     delete this->edge_factors;
 }
 
-inline void vec_mult_add(double *a, double *b, double f, size_t len) {
+inline void vec_mult_add(double a[], size_t start_a,
+    double b[], size_t start_b, double f, size_t len) {
+   
+    if(start_a % 2 != 0 || start_b % 2 != 0) { 
+        for(size_t j = 0; j < len; j++)
+            a[start_a + j] += f * b[start_b + j];
+    }
+
+    else { 
+        double dummy_f[] = {f, f};
+        size_t stride = 16 / sizeof(double);
+
+        __m128d temp_f = _mm_load_pd(dummy_f);
+        __m128d temp_a, temp_b;
+
+        for(size_t j = 0; j < len; j += stride) {
+            temp_a = _mm_load_pd(&a[start_a + j]);
+            temp_b = _mm_load_pd(&b[start_b + j]);
+        
+            //a[j] += f * b[j];
+            temp_a = _mm_add_pd(temp_a, _mm_mul_pd(temp_f, temp_b));
+           
+            _mm_store_pd(&a[start_a + j], temp_a);
+        }
+
+        if(len % stride != 0) {
+            for(size_t j = len - stride; j < len; j++)
+                a[start_a + j] += f * b[start_b + j];
+    }
+
+    }
+
     
-    for(size_t j = 0; j < len; j++) 
-        a[j] += f * b[j];
 } 
 
 void MAD_sketch::run_sim(size_t iters) {
     size_t sketch_size = this->d * this->w;
 
-    #pragma omp parallel
+    #pragma omp parallel num_threads(1)
     {
     
     size_t tid = omp_get_thread_num(),
@@ -153,15 +183,15 @@ void MAD_sketch::run_sim(size_t iters) {
             if(start_range <= u && u < end_range) {
                 start_u = (u - start_range) * sketch_size;
                 start_v = v * sketch_size;
-                
-                vec_mult_add(temp_D + start_u, this->Ys + start_v, factor, sketch_size);
+                 
+                vec_mult_add(temp_D, start_u, this->Ys, start_v, factor, sketch_size);
             }
 
             if(start_range <= v && v < end_range) {
                 start_u = u * sketch_size;
                 start_v = (v - start_range) * sketch_size;
-               
-                vec_mult_add(temp_D + start_v, this->Ys + start_u, factor, sketch_size);
+                
+                vec_mult_add(temp_D, start_v, this->Ys, start_u, factor, sketch_size);
             }
         }
         
