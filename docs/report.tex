@@ -3,6 +3,7 @@
 \usepackage{url}
 \usepackage{hyperref}
 \usepackage[margin=1in]{geometry}
+\usepackage[ruled, noline]{algorithm2e}
 \usepackage{cite, enumerate, amsmath, amssymb}
 \usepackage{graphicx}
 
@@ -118,14 +119,17 @@ We now the describe the dependency structure for this algorithm. Essentially, th
 We finally discuss a sketching algorithm based on sampling. Uniformly sampling the rows of a matrix is a very intuitive way of forming an approximation to the matrix, but unfortunately, fails to give theoretical guarantees. The problem is that in order to capture the essence of a matrix, one needs to make sure to capture a small number of rows that are ``outliers'' in some sense, but uniform sampling will not capture these rows with high enough probability. However, sketches based on sampling are desirable for many reasons. For instance, the sketches discussed will yield dense matrices in general, even if the input matrix is sparse. However, sampling-based sketches will preserve sparsity. In addition, sampling-based sketches are more interpretable, as the rows are rows from the original matrix themselves, not some linear combination. 
 
 The way to make sampling work as a sketch is to sample proportionally to the \emph{leverage scores} of a matrix, which are the norms of the left singular vectors of the matrix (columns of $U$ where $A = U\Sigma V^\top$ is the singular value decomposition). Note that exact computation of the leverage scores is not compatible with a sketching algorithm, since this takes way too long and defeats the purpose of computing the sketch. Thus, we employ a fast approximation algorithm to obtain constant factor estimates of the leverage scores, which can then be used to obtain the leverage score sampling sketch. The approximation of the leverage scores is based on other subspace embedding sketches -- this is where we use our Gaussian sketch and count sketch from before. The pseudocode for the algorithm for fast approximation of leverage scores is given as follows:
-\begin{enumerate}
-	\item Compute a count sketch $SA$ of the input matrix $A$
-	\item Compute a factorization $SA = QR^{-1}$ so that $Q$ is orthonormal
-	\item Compute $R$, the inverse of $R^{-1}$
-	\item Compute a Gaussian sketch $RG$ of $R$
-	\item Compute $A(RG)$
-	\item Compute the row norms times a scalar factor
-\end{enumerate}
+
+\begin{algorithm}[H]
+    \LinesNumbered
+    Compute a subspace embedding $SA$ \\
+    Compute a orthonormal decomposition $SA = QR^{-1}$ with $Q$ orthonormal \\
+    Compute the inverse $R$ \\
+    Compute a right Gaussian sketch $RG$ of $R$ \\
+    Output the approximations $\ell_i := \beta\left\lVert e_i ARG\right\rVert_2^2  / d$
+    \caption{Fast approximation of leverage scores}
+\end{algorithm}
+
 Then, we obtain a $(1+\varepsilon)$ subspace embedding sketch based on sketching by sampling $p$ times, where
 \[
 	p\geq \frac{C\cdot \frac43\frac{d}{\beta}\log d}{\varepsilon^2}
@@ -180,6 +184,8 @@ We first present our results for implementing leverage score sampling on GPUs. C
 
 Our benchmark data was derived from a range of randomly generated matrices, ranging from around a few kilobytes ($10\times 5$ matrices) up to around 40 megabytes ($30000\times 100$ matrices). To measure the efficiency of our CUDA implementation, we compared the time to a single-threaded C++ implementation based on optimized linear algebra subroutines of the Eigen library. We computed the wall-clock time of both the sequential and parallel implementations and took the ratio of the sequential time and the parallel time to be our speedup. 
 
+In order to analyze how the algorithm scales, we studied the speedups when we varied $n$, the number of rows of the design matrix, and $d$, the number of columns of the design matrix. The results of fixing $d=100$ and increasing $n$ from $1200$ to $30000$ scaled the speedup of the implementation from around $1.4$ to $2.1$, as shown in figure \ref{speedup-vs-rows}. Although $2\times$ speedup, including the time used to move the data from host to device, is nice, it is not extremely satisfactory given the fact that we ran our algorithm on a GPU which has potential for much more speedup. On the other hand, this reveals the quality of the algorithm as a big data algorithm: when we fix the number of fields and increase the number of data points taken, the algorithm stays extremely fast, enough that computing on GPU does not give a notable improvement. On the other hand, fixing $n=2000$ and scaling $d$ from $100$ to $1200$ is far more interesting; the speedup scales from on the order of $1\times$ speedup at $d=100$ all the way up to almost $40\times$ at $d=1200$, as shown in figure \ref{speedup-vs-cols}. This reveals to us that this algorithm scales poorly on CPUs as $d$ increases, and that there is a huge amount of benefit to writing leverage score sampling on GPUs when the number of fields/attributes is large, even as little as on the order of $1000$ fields. Given that recent big data applications easily use much more columns in their design matrices, this stresses the importance of GPUs in big data. 
+
 \begin{figure}[ht]
 \centering
 \label{speedup-vs-rows}
@@ -198,7 +204,7 @@ Our benchmark data was derived from a range of randomly generated matrices, rang
 \centering
 \label{speedup-vs-threads}
 \includegraphics[scale=0.7]{speedup-vs-threads}
-\caption{Speedup improves dramatically as a function of $d$}
+\caption{Speedup improves as more threads are used}
 \end{figure}
 
 \section{Division of Work}
