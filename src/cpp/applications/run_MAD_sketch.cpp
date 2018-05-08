@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
             labels[j].first  = res->at(u).get(j);
             labels[j].second = j;
         }
-
+        
         std::sort(labels.begin(), labels.end());
         res_file << u << '\t';
         for(int j = num_labels-1; j >= 0; j--){
